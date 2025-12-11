@@ -754,17 +754,6 @@ We welcome contributions to the WellCare Companion project! To contribute:
 
 <br />
 
-## 👤 Author
-
-**IMAFIDON EMMANUEL**
-
-Connect with me:
-
-*   LinkedIn: [https://www.linkedin.com/in/your-linkedin-profile](https://www.linkedin.com/in/imafidon-emmanuel-a9b086202/)
-*   Portfolio: [https://your-portfolio-website.com](https://www.geval.live/)
-*   Twitter: [@your_twitter_handle](https://x.com/Emm_Geval)
-
-<br />
 
 ## 📜 License
 
