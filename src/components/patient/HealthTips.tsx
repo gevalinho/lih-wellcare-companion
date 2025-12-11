@@ -8,84 +8,13 @@ import {
   Send, 
   Loader2, 
   AlertCircle,
-  Heart,
   Droplets,
   Eye,
   Brain,
   CheckCircle,
-  Clock,
-  FileText,
   X
 } from 'lucide-react';
-
-// API Configuration
-const API_BASE = '/make-server-6e6f3496';
-
-const apiRequest = async (endpoint: string, options?: RequestInit) => {
-  const response = await fetch(`${API_BASE}${endpoint}`, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...options?.headers,
-    },
-  });
-  
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error || 'Request failed');
-  }
-  
-  return response.json();
-};
-
-// AI Chat API
-const aiChatAPI = {
-  sendMessage: async (message: string, sessionId?: string, symptoms?: string[], vitalsContext?: any) => {
-    return apiRequest('/ai/chat', {
-      method: 'POST',
-      body: JSON.stringify({ message, sessionId, symptoms, vitalsContext }),
-    });
-  },
-  
-  getHistory: async (sessionId?: string) => {
-    const query = sessionId ? `?sessionId=${sessionId}` : '';
-    return apiRequest(`/ai/chat/history${query}`);
-  },
-  
-  checkSymptoms: async (symptoms: string[], duration?: string, severity?: number) => {
-    return apiRequest('/ai/symptom-check', {
-      method: 'POST',
-      body: JSON.stringify({ symptoms, duration, severity }),
-    });
-  },
-};
-
-// Health Check Session API
-const healthCheckAPI = {
-  startSession: async () => {
-    return apiRequest('/health-check/session', {
-      method: 'POST',
-    });
-  },
-  
-  analyzeFace: async (imageData: string, sessionId?: string) => {
-    return apiRequest('/health-check/analyze-face', {
-      method: 'POST',
-      body: JSON.stringify({ imageData, sessionId }),
-    });
-  },
-  
-  completeSession: async (sessionId: string) => {
-    return apiRequest('/health-check/session/complete', {
-      method: 'POST',
-      body: JSON.stringify({ sessionId }),
-    });
-  },
-  
-  getHistory: async () => {
-    return apiRequest('/health-check/history');
-  },
-};
+import { aiChatAPI, healthCheckAPI } from '../../utils/api';
 
 export function HealthTips() {
   const [activeTab, setActiveTab] = useState<'chat' | 'symptoms' | 'face'>('chat');
@@ -143,10 +72,11 @@ export function HealthTips() {
         content: response.response,
         context: response.context 
       }]);
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Chat error:', error);
       setMessages(prev => [...prev, { 
         role: 'error', 
-        content: 'Sorry, I had trouble processing that. Please try again.' 
+        content: error.message || 'Sorry, I had trouble processing that. Please try again.' 
       }]);
     } finally {
       setChatLoading(false);
@@ -172,8 +102,9 @@ export function HealthTips() {
     try {
       const response = await aiChatAPI.checkSymptoms(symptoms, duration, severity);
       setSymptomAnalysis(response.analysis);
-    } catch (error) {
-      alert('Failed to analyze symptoms. Please try again.');
+    } catch (error: any) {
+      console.error('Symptom analysis error:', error);
+      alert(`Failed to analyze symptoms: ${error.message}`);
     } finally {
       setSymptomLoading(false);
     }
@@ -190,6 +121,7 @@ export function HealthTips() {
         setCameraActive(true);
       }
     } catch (error) {
+      console.error('Camera error:', error);
       alert('Could not access camera. Please check permissions.');
     }
   };
@@ -235,8 +167,9 @@ export function HealthTips() {
       
       const response = await healthCheckAPI.analyzeFace(faceImage, currentSession);
       setFaceAnalysis(response.analysis);
-    } catch (error) {
-      alert('Failed to analyze face. Please try again.');
+    } catch (error: any) {
+      console.error('Face analysis error:', error);
+      alert(`Failed to analyze face: ${error.message}`);
     } finally {
       setFaceLoading(false);
     }

@@ -18,9 +18,13 @@ export const getAuthHeaders = async () => {
   const supabase = getSupabase();
   const { data: { session } } = await supabase.auth.getSession();
   
+  if (!session?.access_token) {
+    throw new Error('No active session. Please sign in.');
+  }
+  
   return {
     'Content-Type': 'application/json',
-    'Authorization': session?.access_token ? `Bearer ${session.access_token}` : `Bearer ${publicAnonKey}`
+    'Authorization': `Bearer ${session.access_token}`
   };
 };
 

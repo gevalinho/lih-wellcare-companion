@@ -49,10 +49,44 @@ const requireAuth = async (c: any, next: any) => {
   await next();
 };
 
+// Helper to get OpenAI API key
+const getOpenAIKey = () => {
+  const apiKey = Deno.env.get('OPENAI_API_KEY');
+  if (!apiKey) {
+    throw new Error('OPENAI_API_KEY environment variable not set');
+  }
+  return apiKey;
+};
+
 // Health check endpoint
 app.get("/make-server-6e6f3496/health", (c) => {
   return c.json({ status: "ok" });
 });
+
+// ============================================
+// OPTIONS HANDLERS FOR CORS PREFLIGHT
+// ============================================
+app.options("/make-server-6e6f3496/auth/signup", (c) => c.text('', 204));
+app.options("/make-server-6e6f3496/auth/profile", (c) => c.text('', 204));
+app.options("/make-server-6e6f3496/vitals", (c) => c.text('', 204));
+app.options("/make-server-6e6f3496/medications", (c) => c.text('', 204));
+app.options("/make-server-6e6f3496/medications/log", (c) => c.text('', 204));
+app.options("/make-server-6e6f3496/medications/logs", (c) => c.text('', 204));
+app.options("/make-server-6e6f3496/consent/grant", (c) => c.text('', 204));
+app.options("/make-server-6e6f3496/consent/revoke", (c) => c.text('', 204));
+app.options("/make-server-6e6f3496/consent/granted", (c) => c.text('', 204));
+app.options("/make-server-6e6f3496/consent/patients", (c) => c.text('', 204));
+app.options("/make-server-6e6f3496/alerts", (c) => c.text('', 204));
+app.options("/make-server-6e6f3496/alerts/:alertId/read", (c) => c.text('', 204));
+app.options("/make-server-6e6f3496/notifications", (c) => c.text('', 204));
+app.options("/make-server-6e6f3496/ai/chat", (c) => c.text('', 204));
+app.options("/make-server-6e6f3496/ai/chat/history", (c) => c.text('', 204));
+app.options("/make-server-6e6f3496/ai/symptom-check", (c) => c.text('', 204));
+app.options("/make-server-6e6f3496/ai/symptom-history", (c) => c.text('', 204));
+app.options("/make-server-6e6f3496/health-check/session", (c) => c.text('', 204));
+app.options("/make-server-6e6f3496/health-check/analyze-face", (c) => c.text('', 204));
+app.options("/make-server-6e6f3496/health-check/session/complete", (c) => c.text('', 204));
+app.options("/make-server-6e6f3496/health-check/history", (c) => c.text('', 204));
 
 // ============================================
 // AUTH ENDPOINTS
@@ -78,7 +112,7 @@ app.post("/make-server-6e6f3496/auth/signup", async (c) => {
     const { data, error } = await supabase.auth.admin.createUser({
       email,
       password,
-      email_confirm: true, // Auto-confirm since we don't have email server configured
+      email_confirm: true,
       user_metadata: { name, role }
     });
 
@@ -99,7 +133,7 @@ app.post("/make-server-6e6f3496/auth/signup", async (c) => {
     };
 
     await kv.set(`user:${userId}`, profile);
-    await kv.set(`user:email:${email}`, userId); // Index by email
+    await kv.set(`user:email:${email}`, userId);
 
     return c.json({ 
       success: true, 
@@ -143,9 +177,9 @@ app.put("/make-server-6e6f3496/auth/profile", requireAuth, async (c) => {
     const updatedProfile = {
       ...currentProfile,
       ...updates,
-      id: userId, // Don't allow changing ID
-      role: currentProfile.role, // Don't allow changing role
-      email: currentProfile.email, // Don't allow changing email
+      id: userId,
+      role: currentProfile.role,
+      email: currentProfile.email,
       updatedAt: new Date().toISOString()
     };
 
@@ -161,7 +195,7 @@ app.put("/make-server-6e6f3496/auth/profile", requireAuth, async (c) => {
 // VITAL SIGNS ENDPOINTS
 // ============================================
 
-// Add vital reading (BP, pulse, etc.)
+// Add vital reading
 app.post("/make-server-6e6f3496/vitals", requireAuth, async (c) => {
   try {
     const userId = c.get('userId');
@@ -201,8 +235,6 @@ app.post("/make-server-6e6f3496/vitals", requireAuth, async (c) => {
         read: false
       };
       await kv.set(alertId, alert);
-
-      // Notify caregivers and doctors with access
       await notifySharedUsers(userId, alert);
     }
 
@@ -217,11 +249,10 @@ app.post("/make-server-6e6f3496/vitals", requireAuth, async (c) => {
 app.get("/make-server-6e6f3496/vitals", requireAuth, async (c) => {
   try {
     const userId = c.get('userId');
-    const patientId = c.req.query('patientId'); // For caregivers/doctors viewing patient data
+    const patientId = c.req.query('patientId');
     
     let targetUserId = userId;
     
-    // If viewing another user's data, check permissions
     if (patientId && patientId !== userId) {
       const hasAccess = await checkDataAccess(userId, patientId);
       if (!hasAccess) {
@@ -231,8 +262,6 @@ app.get("/make-server-6e6f3496/vitals", requireAuth, async (c) => {
     }
 
     const vitals = await kv.getByPrefix(`vital:${targetUserId}:`);
-    
-    // Sort by timestamp (newest first)
     vitals.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
     return c.json({ vitals });
@@ -300,7 +329,7 @@ app.get("/make-server-6e6f3496/medications", requireAuth, async (c) => {
   }
 });
 
-// Log medication dose taken
+// Log medication dose
 app.post("/make-server-6e6f3496/medications/log", requireAuth, async (c) => {
   try {
     const userId = c.get('userId');
@@ -316,7 +345,7 @@ app.post("/make-server-6e6f3496/medications/log", requireAuth, async (c) => {
       id: logId,
       userId,
       medicationId,
-      taken: taken !== false, // Default to true
+      taken: taken !== false,
       timestamp: timestamp || new Date().toISOString(),
       notes: notes || ''
     };
@@ -358,7 +387,7 @@ app.get("/make-server-6e6f3496/medications/logs", requireAuth, async (c) => {
 // CONSENT & DATA SHARING ENDPOINTS
 // ============================================
 
-// Grant access to caregiver or doctor
+// Grant access
 app.post("/make-server-6e6f3496/consent/grant", requireAuth, async (c) => {
   try {
     const userId = c.get('userId');
@@ -369,7 +398,6 @@ app.post("/make-server-6e6f3496/consent/grant", requireAuth, async (c) => {
       return c.json({ error: 'Grantee email and access level are required' }, 400);
     }
 
-    // Find grantee user
     const granteeUserId = await kv.get(`user:email:${granteeEmail}`);
     if (!granteeUserId) {
       return c.json({ error: 'User with that email not found' }, 404);
@@ -381,14 +409,12 @@ app.post("/make-server-6e6f3496/consent/grant", requireAuth, async (c) => {
       patientId: userId,
       granteeId: granteeUserId,
       granteeEmail,
-      accessLevel, // 'view' or 'full'
+      accessLevel,
       granted: true,
       grantedAt: new Date().toISOString()
     };
 
     await kv.set(consentId, consent);
-    
-    // Also create reverse index for quick lookup
     await kv.set(`consent:grantee:${granteeUserId}:${userId}`, consent);
 
     return c.json({ success: true, consent });
@@ -421,7 +447,7 @@ app.post("/make-server-6e6f3496/consent/revoke", requireAuth, async (c) => {
   }
 });
 
-// Get granted consents (who can access my data)
+// Get granted consents
 app.get("/make-server-6e6f3496/consent/granted", requireAuth, async (c) => {
   try {
     const userId = c.get('userId');
@@ -433,13 +459,12 @@ app.get("/make-server-6e6f3496/consent/granted", requireAuth, async (c) => {
   }
 });
 
-// Get patients I have access to (for caregivers/doctors)
+// Get patients
 app.get("/make-server-6e6f3496/consent/patients", requireAuth, async (c) => {
   try {
     const userId = c.get('userId');
     const consents = await kv.getByPrefix(`consent:grantee:${userId}:`);
     
-    // Fetch patient profiles
     const patients = await Promise.all(
       consents.map(async (consent) => {
         const profile = await kv.get(`user:${consent.patientId}`);
@@ -507,40 +532,7 @@ app.put("/make-server-6e6f3496/alerts/:alertId/read", requireAuth, async (c) => 
   }
 });
 
-// ============================================
-// HELPER FUNCTIONS
-// ============================================
-
-async function checkDataAccess(requesterId: string, patientId: string): Promise<boolean> {
-  const consent = await kv.get(`consent:${patientId}:${requesterId}`);
-  return consent && consent.granted;
-}
-
-async function notifySharedUsers(patientId: string, alert: any) {
-  try {
-    const consents = await kv.getByPrefix(`consent:${patientId}:`);
-    
-    // Store notification for each grantee
-    for (const consent of consents) {
-      const notificationId = `notification:${consent.granteeId}:${Date.now()}`;
-      const notification = {
-        id: notificationId,
-        userId: consent.granteeId,
-        patientId,
-        type: alert.type,
-        message: alert.message,
-        alertId: alert.id,
-        timestamp: new Date().toISOString(),
-        read: false
-      };
-      await kv.set(notificationId, notification);
-    }
-  } catch (error) {
-    console.log('Notify shared users error:', error);
-  }
-}
-
-// Get notifications (for caregivers/doctors)
+// Get notifications
 app.get("/make-server-6e6f3496/notifications", requireAuth, async (c) => {
   try {
     const userId = c.get('userId');
@@ -558,400 +550,7 @@ app.get("/make-server-6e6f3496/notifications", requireAuth, async (c) => {
 // AI HEALTH CHAT ENDPOINTS
 // ============================================
 
-// Start AI health chat session
-app.post("/make-server-6e6f3496/ai/chat", requireAuth, async (c) => {
-  try {
-    const userId = c.get('userId');
-    const body = await c.req.json();
-    const { message, sessionId, symptoms, vitalsContext } = body;
-
-    if (!message) {
-      return c.json({ error: 'Message is required' }, 400);
-    }
-
-    // Get user's recent health data for context
-    const recentVitals = await kv.getByPrefix(`vital:${userId}:`);
-    const medications = await kv.getByPrefix(`medication:${userId}:`);
-    const profile = await kv.get(`user:${userId}`);
-
-    // Sort vitals by timestamp and get the last 5
-    recentVitals.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-    const latestVitals = recentVitals.slice(0, 5);
-
-    // Build context for AI
-    const healthContext = {
-      profile: {
-        age: profile?.age,
-        conditions: profile?.conditions || [],
-      },
-      recentVitals: latestVitals.map(v => ({
-        bp: `${v.systolic}/${v.diastolic}`,
-        pulse: v.pulse,
-        date: v.timestamp
-      })),
-      medications: medications.filter(m => m.active).map(m => ({
-        name: m.name,
-        dosage: m.dosage
-      })),
-      symptoms: symptoms || []
-    };
-
-    // Call Claude API for health insights
-    const aiResponse = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 1000,
-        system: `You are a helpful health assistant. Provide general health information and insights based on the user's data. Always remind users to consult healthcare professionals for medical advice. 
-        
-User's health context: ${JSON.stringify(healthContext)}
-
-Important: 
-- Never diagnose conditions
-- Provide educational information only
-- Encourage medical consultation for concerns
-- Be empathetic and supportive`,
-        messages: [
-          { role: "user", content: message }
-        ],
-      })
-    });
-
-    const aiData = await aiResponse.json();
-    const aiMessage = aiData.content?.[0]?.text || "I'm having trouble processing that. Please try again.";
-
-    // Save chat history
-    const chatId = sessionId || `chat:${userId}:${Date.now()}`;
-    const chatEntry = {
-      id: `${chatId}:${Date.now()}`,
-      sessionId: chatId,
-      userId,
-      userMessage: message,
-      aiResponse: aiMessage,
-      context: healthContext,
-      timestamp: new Date().toISOString()
-    };
-
-    await kv.set(chatEntry.id, chatEntry);
-
-    return c.json({ 
-      success: true, 
-      response: aiMessage,
-      sessionId: chatId,
-      context: healthContext
-    });
-  } catch (error) {
-    console.log('AI chat error:', error);
-    return c.json({ error: `Failed to process chat: ${error.message}` }, 500);
-  }
-});
-
-// Get chat history
-app.get("/make-server-6e6f3496/ai/chat/history", requireAuth, async (c) => {
-  try {
-    const userId = c.get('userId');
-    const sessionId = c.req.query('sessionId');
-    
-    let prefix = `chat:${userId}:`;
-    if (sessionId) {
-      prefix = sessionId + ':';
-    }
-    
-    const chatHistory = await kv.getByPrefix(prefix);
-    chatHistory.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
-    
-    return c.json({ history: chatHistory });
-  } catch (error) {
-    console.log('Get chat history error:', error);
-    return c.json({ error: `Failed to get chat history: ${error.message}` }, 500);
-  }
-});
-
-// Symptom checker / Illness simulator
-app.post("/make-server-6e6f3496/ai/symptom-check", requireAuth, async (c) => {
-  try {
-    const userId = c.get('userId');
-    const body = await c.req.json();
-    const { symptoms, duration, severity } = body;
-
-    if (!symptoms || symptoms.length === 0) {
-      return c.json({ error: 'Symptoms are required' }, 400);
-    }
-
-    const profile = await kv.get(`user:${userId}`);
-    
-    // Call Claude API for symptom analysis
-    const aiResponse = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 1500,
-        system: `You are a medical information assistant. Analyze symptoms and provide educational information about possible conditions. Always emphasize consulting healthcare professionals.
-
-Return your response as JSON with this structure:
-{
-  "possibleConditions": ["condition1", "condition2"],
-  "severity": "mild|moderate|severe",
-  "recommendations": ["recommendation1", "recommendation2"],
-  "urgency": "low|medium|high",
-  "disclaimer": "your disclaimer message"
-}`,
-        messages: [
-          { 
-            role: "user", 
-            content: `Symptoms: ${symptoms.join(', ')}
-Duration: ${duration || 'Not specified'}
-Severity (1-10): ${severity || 'Not specified'}
-User age: ${profile?.age || 'Not specified'}
-Existing conditions: ${profile?.conditions?.join(', ') || 'None'}
-
-Please analyze these symptoms and provide information.` 
-          }
-        ],
-      })
-    });
-
-    const aiData = await aiResponse.json();
-    let analysis;
-    
-    try {
-      const responseText = aiData.content?.[0]?.text || "{}";
-      const cleanText = responseText.replace(/```json\n?|\n?```/g, '').trim();
-      analysis = JSON.parse(cleanText);
-    } catch (e) {
-      analysis = {
-        possibleConditions: ["Unable to analyze"],
-        severity: "unknown",
-        recommendations: ["Please consult a healthcare professional"],
-        urgency: "medium",
-        disclaimer: "This is for informational purposes only."
-      };
-    }
-
-    // Save symptom check
-    const checkId = `symptom:${userId}:${Date.now()}`;
-    const symptomCheck = {
-      id: checkId,
-      userId,
-      symptoms,
-      duration,
-      severity,
-      analysis,
-      timestamp: new Date().toISOString()
-    };
-
-    await kv.set(checkId, symptomCheck);
-
-    return c.json({ success: true, analysis, checkId });
-  } catch (error) {
-    console.log('Symptom check error:', error);
-    return c.json({ error: `Failed to check symptoms: ${error.message}` }, 500);
-  }
-});
-
-// ============================================
-// FACE ANALYSIS / HEALTH CHECK SESSION ENDPOINTS
-// ============================================
-
-// Start health check session
-app.post("/make-server-6e6f3496/health-check/session", requireAuth, async (c) => {
-  try {
-    const userId = c.get('userId');
-    
-    const sessionId = `health-session:${userId}:${Date.now()}`;
-    const session = {
-      id: sessionId,
-      userId,
-      status: 'started',
-      startTime: new Date().toISOString(),
-      checks: []
-    };
-
-    await kv.set(sessionId, session);
-    return c.json({ success: true, sessionId, session });
-  } catch (error) {
-    console.log('Start session error:', error);
-    return c.json({ error: `Failed to start session: ${error.message}` }, 500);
-  }
-});
-
-// Analyze face image (stress, eye, hydration)
-app.post("/make-server-6e6f3496/health-check/analyze-face", requireAuth, async (c) => {
-  try {
-    const userId = c.get('userId');
-    const body = await c.req.json();
-    const { imageData, sessionId } = body;
-
-    if (!imageData) {
-      return c.json({ error: 'Image data is required' }, 400);
-    }
-
-    // Call Claude API with vision for face analysis
-    const aiResponse = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 2000,
-        system: `You are a health analysis assistant. Analyze facial features for wellness indicators. Provide general observations only, not medical diagnoses.
-
-Analyze:
-1. Stress indicators (facial tension, eye strain)
-2. Hydration (lip appearance, skin texture)
-3. Eye health (redness, clarity, dark circles)
-4. Overall wellness appearance
-
-Return JSON:
-{
-  "stressLevel": "low|medium|high",
-  "stressIndicators": ["indicator1", "indicator2"],
-  "hydrationLevel": "well-hydrated|adequate|dehydrated",
-  "hydrationSigns": ["sign1", "sign2"],
-  "eyeHealth": {
-    "clarity": "good|fair|poor",
-    "redness": "none|mild|moderate|severe",
-    "darkCircles": "none|mild|moderate|severe"
-  },
-  "recommendations": ["recommendation1", "recommendation2"],
-  "overallScore": 0-100,
-  "disclaimer": "This is not a medical diagnosis"
-}`,
-        messages: [
-          { 
-            role: "user", 
-            content: [
-              {
-                type: "image",
-                source: {
-                  type: "base64",
-                  media_type: "image/jpeg",
-                  data: imageData.split(',')[1] // Remove data:image/jpeg;base64, prefix
-                }
-              },
-              {
-                type: "text",
-                text: "Please analyze this face for stress, hydration, and eye health indicators."
-              }
-            ]
-          }
-        ],
-      })
-    });
-
-    const aiData = await aiResponse.json();
-    let analysis;
-    
-    try {
-      const responseText = aiData.content?.[0]?.text || "{}";
-      const cleanText = responseText.replace(/```json\n?|\n?```/g, '').trim();
-      analysis = JSON.parse(cleanText);
-    } catch (e) {
-      analysis = {
-        stressLevel: "unknown",
-        stressIndicators: ["Unable to analyze image"],
-        hydrationLevel: "unknown",
-        hydrationSigns: [],
-        eyeHealth: { clarity: "unknown", redness: "unknown", darkCircles: "unknown" },
-        recommendations: ["Please ensure good lighting and try again"],
-        overallScore: 0,
-        disclaimer: "Analysis unavailable"
-      };
-    }
-
-    // Save analysis
-    const analysisId = `face-analysis:${userId}:${Date.now()}`;
-    const faceAnalysis = {
-      id: analysisId,
-      userId,
-      sessionId,
-      analysis,
-      timestamp: new Date().toISOString()
-    };
-
-    await kv.set(analysisId, faceAnalysis);
-
-    // Update session if provided
-    if (sessionId) {
-      const session = await kv.get(sessionId);
-      if (session) {
-        session.checks.push({
-          type: 'face-analysis',
-          id: analysisId,
-          timestamp: new Date().toISOString()
-        });
-        await kv.set(sessionId, session);
-      }
-    }
-
-    return c.json({ success: true, analysis, analysisId });
-  } catch (error) {
-    console.log('Face analysis error:', error);
-    return c.json({ error: `Failed to analyze face: ${error.message}` }, 500);
-  }
-});
-
-// Complete health check session
-app.post("/make-server-6e6f3496/health-check/session/complete", requireAuth, async (c) => {
-  try {
-    const userId = c.get('userId');
-    const body = await c.req.json();
-    const { sessionId } = body;
-
-    const session = await kv.get(sessionId);
-    if (!session || session.userId !== userId) {
-      return c.json({ error: 'Session not found' }, 404);
-    }
-
-    session.status = 'completed';
-    session.endTime = new Date().toISOString();
-    
-    await kv.set(sessionId, session);
-    return c.json({ success: true, session });
-  } catch (error) {
-    console.log('Complete session error:', error);
-    return c.json({ error: `Failed to complete session: ${error.message}` }, 500);
-  }
-});
-
-// Get health check history
-app.get("/make-server-6e6f3496/health-check/history", requireAuth, async (c) => {
-  try {
-    const userId = c.get('userId');
-    const sessions = await kv.getByPrefix(`health-session:${userId}:`);
-    const analyses = await kv.getByPrefix(`face-analysis:${userId}:`);
-    
-    sessions.sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime());
-    analyses.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-    
-    return c.json({ sessions, analyses });
-  } catch (error) {
-    console.log('Get health check history error:', error);
-    return c.json({ error: `Failed to get history: ${error.message}` }, 500);
-  }
-});
-// ============================================
-// AI HEALTH CHAT ENDPOINTS - USING OPENAI/CHATGPT
-// Replace your existing AI endpoints with these
-// ============================================
-
-// Helper to get OpenAI API key
-const getOpenAIKey = () => {
-  const apiKey = Deno.env.get('OPENAI_API_KEY');
-  if (!apiKey) {
-    throw new Error('OPENAI_API_KEY environment variable not set');
-  }
-  return apiKey;
-};
-
-// AI Chat endpoint with ChatGPT
+// AI Chat endpoint
 app.post("/make-server-6e6f3496/ai/chat", requireAuth, async (c) => {
   try {
     const userId = c.get('userId');
@@ -962,17 +561,15 @@ app.post("/make-server-6e6f3496/ai/chat", requireAuth, async (c) => {
       return c.json({ error: 'Message is required' }, 400);
     }
 
-    // Get user's recent health data for context
+    // Get user's health context
     const recentVitals = await kv.getByPrefix(`vital:${userId}:`);
     const medications = await kv.getByPrefix(`medication:${userId}:`);
     const profile = await kv.get(`user:${userId}`) || {};
 
-    // Sort vitals by timestamp and get latest 5
     const sortedVitals = recentVitals.sort((a, b) => 
       new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
     ).slice(0, 5);
 
-    // Build health context
     const healthContext = {
       profile: {
         age: profile.age || 'Not specified',
@@ -997,7 +594,7 @@ app.post("/make-server-6e6f3496/ai/chat", requireAuth, async (c) => {
         "Authorization": `Bearer ${getOpenAIKey()}`
       },
       body: JSON.stringify({
-        model: "gpt-4o", // or "gpt-4-turbo" or "gpt-3.5-turbo" for cheaper option
+        model: "gpt-4o",
         max_tokens: 1000,
         temperature: 0.7,
         messages: [
@@ -1075,7 +672,7 @@ app.get("/make-server-6e6f3496/ai/chat/history", requireAuth, async (c) => {
   }
 });
 
-// Symptom checker with ChatGPT
+// Symptom checker
 app.post("/make-server-6e6f3496/ai/symptom-check", requireAuth, async (c) => {
   try {
     const userId = c.get('userId');
@@ -1088,7 +685,6 @@ app.post("/make-server-6e6f3496/ai/symptom-check", requireAuth, async (c) => {
 
     const profile = await kv.get(`user:${userId}`) || {};
     
-    // Call OpenAI API
     const aiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -1099,7 +695,7 @@ app.post("/make-server-6e6f3496/ai/symptom-check", requireAuth, async (c) => {
         model: "gpt-4o",
         max_tokens: 1500,
         temperature: 0.7,
-        response_format: { type: "json_object" }, // Force JSON response
+        response_format: { type: "json_object" },
         messages: [
           {
             role: "system",
@@ -1141,7 +737,6 @@ Return analysis as JSON.`
       const responseText = aiData.choices?.[0]?.message?.content || "{}";
       analysis = JSON.parse(responseText);
       
-      // Ensure all required fields exist
       analysis = {
         possibleConditions: analysis.possibleConditions || ["Unable to determine"],
         severity: analysis.severity || "moderate",
@@ -1164,7 +759,6 @@ Return analysis as JSON.`
       };
     }
 
-    // Save symptom check
     const checkId = `symptom:${userId}:${Date.now()}`;
     const symptomCheck = {
       id: checkId,
@@ -1182,6 +776,20 @@ Return analysis as JSON.`
   } catch (error) {
     console.log('Symptom check error:', error);
     return c.json({ error: `Failed to check symptoms: ${error.message}` }, 500);
+  }
+});
+
+// Get symptom history
+app.get("/make-server-6e6f3496/ai/symptom-history", requireAuth, async (c) => {
+  try {
+    const userId = c.get('userId');
+    const checks = await kv.getByPrefix(`symptom:${userId}:`);
+    checks.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    
+    return c.json({ checks });
+  } catch (error) {
+    console.log('Get symptom history error:', error);
+    return c.json({ error: `Failed to get history: ${error.message}` }, 500);
   }
 });
 
@@ -1211,7 +819,7 @@ app.post("/make-server-6e6f3496/health-check/session", requireAuth, async (c) =>
   }
 });
 
-// Analyze face image with ChatGPT Vision
+// Analyze face image
 app.post("/make-server-6e6f3496/health-check/analyze-face", requireAuth, async (c) => {
   try {
     const userId = c.get('userId');
@@ -1222,7 +830,6 @@ app.post("/make-server-6e6f3496/health-check/analyze-face", requireAuth, async (
       return c.json({ error: 'Image data is required' }, 400);
     }
 
-    // Call OpenAI Vision API
     const aiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -1230,7 +837,7 @@ app.post("/make-server-6e6f3496/health-check/analyze-face", requireAuth, async (
         "Authorization": `Bearer ${getOpenAIKey()}`
       },
       body: JSON.stringify({
-        model: "gpt-4o", // GPT-4 with vision
+        model: "gpt-4o",
         max_tokens: 2000,
         temperature: 0.7,
         response_format: { type: "json_object" },
@@ -1271,7 +878,7 @@ Return ONLY valid JSON with this structure:
               {
                 type: "image_url",
                 image_url: {
-                  url: imageData // Full data:image/jpeg;base64,... string
+                  url: imageData
                 }
               }
             ]
@@ -1292,7 +899,6 @@ Return ONLY valid JSON with this structure:
       const responseText = aiData.choices?.[0]?.message?.content || "{}";
       analysis = JSON.parse(responseText);
       
-      // Ensure all required fields
       analysis = {
         stressLevel: analysis.stressLevel || "medium",
         stressIndicators: analysis.stressIndicators || ["Facial features analyzed"],
@@ -1326,7 +932,6 @@ Return ONLY valid JSON with this structure:
       };
     }
 
-    // Save analysis
     const analysisId = `face-analysis:${userId}:${Date.now()}`;
     const faceAnalysis = {
       id: analysisId,
@@ -1338,7 +943,6 @@ Return ONLY valid JSON with this structure:
 
     await kv.set(analysisId, faceAnalysis);
 
-    // Update session if provided
     if (sessionId) {
       try {
         const session = await kv.get(sessionId);
@@ -1402,18 +1006,36 @@ app.get("/make-server-6e6f3496/health-check/history", requireAuth, async (c) => 
   }
 });
 
-// Get symptom check history
-app.get("/make-server-6e6f3496/ai/symptom-history", requireAuth, async (c) => {
+// ============================================
+// HELPER FUNCTIONS
+// ============================================
+
+async function checkDataAccess(requesterId: string, patientId: string): Promise<boolean> {
+  const consent = await kv.get(`consent:${patientId}:${requesterId}`);
+  return consent && consent.granted;
+}
+
+async function notifySharedUsers(patientId: string, alert: any) {
   try {
-    const userId = c.get('userId');
-    const checks = await kv.getByPrefix(`symptom:${userId}:`);
-    checks.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    const consents = await kv.getByPrefix(`consent:${patientId}:`);
     
-    return c.json({ checks });
+    for (const consent of consents) {
+      const notificationId = `notification:${consent.granteeId}:${Date.now()}`;
+      const notification = {
+        id: notificationId,
+        userId: consent.granteeId,
+        patientId,
+        type: alert.type,
+        message: alert.message,
+        alertId: alert.id,
+        timestamp: new Date().toISOString(),
+        read: false
+      };
+      await kv.set(notificationId, notification);
+    }
   } catch (error) {
-    console.log('Get symptom history error:', error);
-    return c.json({ error: `Failed to get history: ${error.message}` }, 500);
+    console.log('Notify shared users error:', error);
   }
-});
+}
 
 Deno.serve(app.fetch);

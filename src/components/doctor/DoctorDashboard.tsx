@@ -186,24 +186,23 @@ export function DoctorDashboard({ profile, onLogout }: DoctorDashboardProps) {
   };
 
   const unreadNotifications = notifications.filter(n => !n.read);
-
-  return (
+return (
     <div className="min-h-screen bg-gradient-to-br from-teal-50 via-white to-blue-50">
       {/* Top Navigation Bar */}
       <div className="bg-white border-b shadow-sm sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 py-4">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 py-3 sm:py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="bg-teal-100 p-2 rounded-full">
-                <Heart className="w-6 h-6 text-teal-600" />
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="bg-teal-100 p-1.5 sm:p-2 rounded-full">
+                <Heart className="w-5 h-5 sm:w-6 sm:h-6 text-teal-600" />
               </div>
               <div>
-                <h1 className="text-xl">WellCare Companion</h1>
-                <p className="text-sm text-gray-600">Healthcare Provider Portal</p>
+                <h1 className="text-base sm:text-xl font-semibold">WellCare Companion</h1>
+                <p className="text-xs sm:text-sm text-gray-600 hidden sm:block">Healthcare Provider Portal</p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <div className="text-right mr-3">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <div className="text-right mr-2 sm:mr-3 hidden md:block">
                 <div className="text-sm font-medium">Dr. {profile.name}</div>
                 {profile.specialization && (
                   <div className="text-xs text-gray-500">{profile.specialization}</div>
@@ -213,21 +212,20 @@ export function DoctorDashboard({ profile, onLogout }: DoctorDashboardProps) {
                 <Button variant="outline" size="sm">
                   <Bell className="w-4 h-4" />
                   {unreadNotifications.length > 0 && (
-                    <Badge className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0">
+                    <Badge className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs">
                       {unreadNotifications.length}
                     </Badge>
                   )}
                 </Button>
               </div>
-              <Button variant="outline" onClick={handleLogout}>
-                <LogOut className="w-4 h-4 mr-2" />
-                Logout
+              <Button variant="outline" size="sm" onClick={handleLogout}>
+                <LogOut className="w-4 h-4 sm:mr-2" />
+                <span className="hidden sm:inline">Logout</span>
               </Button>
             </div>
           </div>
         </div>
       </div>
-
       <div className="max-w-7xl mx-auto px-4 py-6">
         {/* Welcome */}
         <div className="mb-6">
