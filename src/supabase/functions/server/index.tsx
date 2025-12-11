@@ -220,7 +220,7 @@ app.post("/make-server-6e6f3496/vitals", requireAuth, async (c) => {
 
     await kv.set(vitalId, vital);
 
-    // Check for high BP alert
+    // Check for high BP alert//
     let alert = null;
     if (vital.systolic >= 140 || vital.diastolic >= 90) {
       const alertId = `alert:${userId}:${Date.now()}`;
