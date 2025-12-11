@@ -1,0 +1,175 @@
+import { createClient } from '@supabase/supabase-js';
+import { projectId, publicAnonKey } from './supabase/info';
+
+const supabaseUrl = `https://${projectId}.supabase.co`;
+let supabaseClient: any = null;
+
+export const getSupabase = () => {
+  if (!supabaseClient) {
+    supabaseClient = createClient(supabaseUrl, publicAnonKey);
+  }
+  return supabaseClient;
+};
+
+const API_BASE = `${supabaseUrl}/functions/v1/make-server-6e6f3496`;
+
+// Get auth headers
+export const getAuthHeaders = async () => {
+  const supabase = getSupabase();
+  const { data: { session } } = await supabase.auth.getSession();
+  
+  return {
+    'Content-Type': 'application/json',
+    'Authorization': session?.access_token ? `Bearer ${session.access_token}` : `Bearer ${publicAnonKey}`
+  };
+};
+
+// API request helper
+const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
+  const headers = await getAuthHeaders();
+  const response = await fetch(`${API_BASE}${endpoint}`, {
+    ...options,
+    headers: {
+      ...headers,
+      ...options.headers,
+    },
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ error: 'Request failed' }));
+    throw new Error(error.error || `HTTP ${response.status}`);
+  }
+
+  return response.json();
+};
+
+// Auth API
+export const authAPI = {
+  signup: async (data: any) => {
+    return apiRequest('/auth/signup', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  signin: async (email: string, password: string) => {
+    const supabase = getSupabase();
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    if (error) throw error;
+    return data;
+  },
+
+  signout: async () => {
+    const supabase = getSupabase();
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
+  },
+
+  getSession: async () => {
+    const supabase = getSupabase();
+    const { data: { session } } = await supabase.auth.getSession();
+    return session;
+  },
+
+  getProfile: async () => {
+    return apiRequest('/auth/profile');
+  },
+
+  updateProfile: async (updates: any) => {
+    return apiRequest('/auth/profile', {
+      method: 'PUT',
+      body: JSON.stringify(updates),
+    });
+  },
+};
+
+// Vitals API
+export const vitalsAPI = {
+  add: async (vital: any) => {
+    return apiRequest('/vitals', {
+      method: 'POST',
+      body: JSON.stringify(vital),
+    });
+  },
+
+  getHistory: async (patientId?: string) => {
+    const query = patientId ? `?patientId=${patientId}` : '';
+    return apiRequest(`/vitals${query}`);
+  },
+};
+
+// Medications API
+export const medicationsAPI = {
+  add: async (medication: any) => {
+    return apiRequest('/medications', {
+      method: 'POST',
+      body: JSON.stringify(medication),
+    });
+  },
+
+  getList: async (patientId?: string) => {
+    const query = patientId ? `?patientId=${patientId}` : '';
+    return apiRequest(`/medications${query}`);
+  },
+
+  logDose: async (log: any) => {
+    return apiRequest('/medications/log', {
+      method: 'POST',
+      body: JSON.stringify(log),
+    });
+  },
+
+  getLogs: async (patientId?: string) => {
+    const query = patientId ? `?patientId=${patientId}` : '';
+    return apiRequest(`/medications/logs${query}`);
+  },
+};
+
+// Consent API
+export const consentAPI = {
+  grant: async (granteeEmail: string, accessLevel: string) => {
+    return apiRequest('/consent/grant', {
+      method: 'POST',
+      body: JSON.stringify({ granteeEmail, accessLevel }),
+    });
+  },
+
+  revoke: async (granteeEmail: string) => {
+    return apiRequest('/consent/revoke', {
+      method: 'POST',
+      body: JSON.stringify({ granteeEmail }),
+    });
+  },
+
+  getGranted: async () => {
+    return apiRequest('/consent/granted');
+  },
+
+  getPatients: async () => {
+    return apiRequest('/consent/patients');
+  },
+};
+
+// Alerts API
+export const alertsAPI = {
+  getList: async (patientId?: string) => {
+    const query = patientId ? `?patientId=${patientId}` : '';
+    return apiRequest(`/alerts${query}`);
+  },
+
+  markRead: async (alertId: string) => {
+    return apiRequest(`/alerts/${alertId}/read`, {
+      method: 'PUT',
+    });
+  },
+};
+
+// Notifications API
+export const notificationsAPI = {
+  getList: async () => {
+    return apiRequest('/notifications');
+  },
+};
