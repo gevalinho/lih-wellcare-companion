@@ -123,23 +123,23 @@ export function VitalsLogger({ onSuccess }: VitalsLoggerProps) {
   const guidance = getBPGuidance();
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="w-full max-w-2xl mx-auto px-4 sm:px-0">
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Heart className="w-6 h-6 text-red-500" />
+        <CardHeader className="p-4 sm:p-6">
+          <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+            <Heart className="w-5 h-5 sm:w-6 sm:h-6 text-red-500 shrink-0" />
             Log Blood Pressure Reading
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="text-sm">
             Record your current blood pressure and vital signs
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
+        <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0">
+          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
             {/* Blood Pressure Inputs */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="systolic">Systolic (Top Number) *</Label>
+                <Label htmlFor="systolic" className="text-sm sm:text-base">Systolic (Top Number) *</Label>
                 <div className="relative">
                   <Input
                     id="systolic"
@@ -150,6 +150,7 @@ export function VitalsLogger({ onSuccess }: VitalsLoggerProps) {
                     required
                     min="50"
                     max="250"
+                    className="h-11 sm:h-10 text-base sm:text-sm pr-16"
                   />
                   <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
                     mmHg
@@ -158,7 +159,7 @@ export function VitalsLogger({ onSuccess }: VitalsLoggerProps) {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="diastolic">Diastolic (Bottom Number) *</Label>
+                <Label htmlFor="diastolic" className="text-sm sm:text-base">Diastolic (Bottom Number) *</Label>
                 <div className="relative">
                   <Input
                     id="diastolic"
@@ -169,6 +170,7 @@ export function VitalsLogger({ onSuccess }: VitalsLoggerProps) {
                     required
                     min="30"
                     max="150"
+                    className="h-11 sm:h-10 text-base sm:text-sm pr-16"
                   />
                   <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
                     mmHg
@@ -179,7 +181,7 @@ export function VitalsLogger({ onSuccess }: VitalsLoggerProps) {
 
             {/* Pulse Input */}
             <div className="space-y-2">
-              <Label htmlFor="pulse">Pulse Rate (optional)</Label>
+              <Label htmlFor="pulse" className="text-sm sm:text-base">Pulse Rate (optional)</Label>
               <div className="relative">
                 <Activity className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <Input
@@ -190,7 +192,7 @@ export function VitalsLogger({ onSuccess }: VitalsLoggerProps) {
                   onChange={(e) => handleInputChange('pulse', e.target.value)}
                   min="40"
                   max="200"
-                  className="pl-10"
+                  className="pl-10 h-11 sm:h-10 text-base sm:text-sm pr-14"
                 />
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">
                   bpm
@@ -200,24 +202,24 @@ export function VitalsLogger({ onSuccess }: VitalsLoggerProps) {
 
             {/* Guidance Display */}
             {guidance && (
-              <div className={`p-4 rounded-lg border-2 ${
+              <div className={`p-3 sm:p-4 rounded-lg border-2 transition-all duration-200 ${
                 guidance.color === 'red' ? 'bg-red-50 border-red-200' :
                 guidance.color === 'orange' ? 'bg-orange-50 border-orange-200' :
                 guidance.color === 'yellow' ? 'bg-yellow-50 border-yellow-200' :
                 guidance.color === 'green' ? 'bg-green-50 border-green-200' :
                 'bg-blue-50 border-blue-200'
               }`}>
-                <div className="flex items-start gap-3">
-                  <guidance.icon className={`w-5 h-5 mt-0.5 ${
+                <div className="flex items-start gap-2 sm:gap-3">
+                  <guidance.icon className={`w-5 h-5 mt-0.5 shrink-0 ${
                     guidance.color === 'red' ? 'text-red-600' :
                     guidance.color === 'orange' ? 'text-orange-600' :
                     guidance.color === 'yellow' ? 'text-yellow-600' :
                     guidance.color === 'green' ? 'text-green-600' :
                     'text-blue-600'
                   }`} />
-                  <div>
-                    <div className="font-medium">{guidance.level}</div>
-                    <div className="text-sm mt-1">{guidance.message}</div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium text-sm sm:text-base">{guidance.level}</div>
+                    <div className="text-xs sm:text-sm mt-1 break-words">{guidance.message}</div>
                   </div>
                 </div>
               </div>
@@ -225,25 +227,26 @@ export function VitalsLogger({ onSuccess }: VitalsLoggerProps) {
 
             {/* Notes */}
             <div className="space-y-2">
-              <Label htmlFor="notes">Notes (optional)</Label>
+              <Label htmlFor="notes" className="text-sm sm:text-base">Notes (optional)</Label>
               <Textarea
                 id="notes"
                 placeholder="How are you feeling? Any symptoms or observations..."
                 value={formData.notes}
                 onChange={(e) => handleInputChange('notes', e.target.value)}
                 rows={3}
+                className="text-base sm:text-sm resize-none"
               />
             </div>
 
             {/* Action Buttons */}
             <div className="flex gap-3">
-              <Button type="submit" disabled={loading} className="flex-1">
+              <Button type="submit" disabled={loading} className="flex-1 h-11 sm:h-10 text-base sm:text-sm">
                 {loading ? 'Recording...' : 'Record Reading'}
               </Button>
             </div>
 
             {/* Information Box */}
-            <div className="p-4 bg-blue-50 rounded-lg text-sm">
+            <div className="p-3 sm:p-4 bg-blue-50 rounded-lg text-xs sm:text-sm">
               <div className="font-medium mb-2">Blood Pressure Guidelines:</div>
               <ul className="space-y-1 text-xs">
                 <li>• Normal: Less than 120/80 mmHg</li>

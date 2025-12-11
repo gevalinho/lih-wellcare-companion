@@ -124,57 +124,57 @@ export function HistoryAnalytics({ profile }: HistoryAnalyticsProps) {
   const trend = getBPTrend();
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div>
-          <h2 className="text-2xl mb-1">Health History & Analytics</h2>
-          <p className="text-gray-600">Track your progress over time</p>
+          <h2 className="text-xl sm:text-2xl mb-1">Health History & Analytics</h2>
+          <p className="text-sm sm:text-base text-gray-600">Track your progress over time</p>
         </div>
-        <Button onClick={handleExport}>
+        <Button onClick={handleExport} className="w-full sm:w-auto">
           <Download className="w-4 h-4 mr-2" />
           Export Report
         </Button>
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="pt-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <Card className="transition-shadow hover:shadow-md">
+          <CardContent className="pt-4 sm:pt-6 p-3 sm:p-6">
             <div className="text-center">
-              <Activity className="w-8 h-8 text-blue-500 mx-auto mb-2" />
-              <div className="text-2xl">{vitals.length}</div>
-              <div className="text-sm text-gray-500">BP Readings</div>
+              <Activity className="w-6 h-6 sm:w-8 sm:h-8 text-blue-500 mx-auto mb-2" />
+              <div className="text-xl sm:text-2xl">{vitals.length}</div>
+              <div className="text-xs sm:text-sm text-gray-500">BP Readings</div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="pt-6">
+        <Card className="transition-shadow hover:shadow-md">
+          <CardContent className="pt-4 sm:pt-6 p-3 sm:p-6">
             <div className="text-center">
-              <TrendingUp className="w-8 h-8 text-green-500 mx-auto mb-2" />
-              <div className="text-2xl">{trend}</div>
-              <div className="text-sm text-gray-500">BP Trend</div>
+              <TrendingUp className="w-6 h-6 sm:w-8 sm:h-8 text-green-500 mx-auto mb-2" />
+              <div className="text-xl sm:text-2xl truncate">{trend}</div>
+              <div className="text-xs sm:text-sm text-gray-500">BP Trend</div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="pt-6">
+        <Card className="transition-shadow hover:shadow-md">
+          <CardContent className="pt-4 sm:pt-6 p-3 sm:p-6">
             <div className="text-center">
-              <Pill className="w-8 h-8 text-purple-500 mx-auto mb-2" />
-              <div className="text-2xl">{adherence}%</div>
-              <div className="text-sm text-gray-500">Adherence (30d)</div>
+              <Pill className="w-6 h-6 sm:w-8 sm:h-8 text-purple-500 mx-auto mb-2" />
+              <div className="text-xl sm:text-2xl">{adherence}%</div>
+              <div className="text-xs sm:text-sm text-gray-500">Adherence (30d)</div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="pt-6">
+        <Card className="transition-shadow hover:shadow-md">
+          <CardContent className="pt-4 sm:pt-6 p-3 sm:p-6">
             <div className="text-center">
-              <AlertTriangle className="w-8 h-8 text-orange-500 mx-auto mb-2" />
-              <div className="text-2xl">{alerts.length}</div>
-              <div className="text-sm text-gray-500">Total Alerts</div>
+              <AlertTriangle className="w-6 h-6 sm:w-8 sm:h-8 text-orange-500 mx-auto mb-2" />
+              <div className="text-xl sm:text-2xl">{alerts.length}</div>
+              <div className="text-xs sm:text-sm text-gray-500">Total Alerts</div>
             </div>
           </CardContent>
         </Card>
@@ -182,34 +182,34 @@ export function HistoryAnalytics({ profile }: HistoryAnalyticsProps) {
 
       {/* Tabs for Different Views */}
       <Tabs defaultValue="charts" className="w-full">
-        <TabsList>
-          <TabsTrigger value="charts">Charts</TabsTrigger>
-          <TabsTrigger value="vitals">Vitals History</TabsTrigger>
-          <TabsTrigger value="medications">Medications</TabsTrigger>
-          <TabsTrigger value="alerts">Alerts</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 h-auto">
+          <TabsTrigger value="charts" className="text-xs sm:text-sm py-2">Charts</TabsTrigger>
+          <TabsTrigger value="vitals" className="text-xs sm:text-sm py-2">Vitals</TabsTrigger>
+          <TabsTrigger value="medications" className="text-xs sm:text-sm py-2">Meds</TabsTrigger>
+          <TabsTrigger value="alerts" className="text-xs sm:text-sm py-2">Alerts</TabsTrigger>
         </TabsList>
 
         {/* Charts Tab */}
-        <TabsContent value="charts" className="space-y-4">
+        <TabsContent value="charts" className="space-y-4 mt-4">
           <Card>
-            <CardHeader>
-              <CardTitle>Blood Pressure Trends (Last 30 Readings)</CardTitle>
+            <CardHeader className="p-4 sm:p-6">
+              <CardTitle className="text-base sm:text-lg">Blood Pressure Trends (Last 30 Readings)</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-2 sm:p-6 pt-0 sm:pt-0">
               {chartData.length > 0 ? (
-                <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={chartData}>
+                <ResponsiveContainer width="100%" height={250} className="sm:h-[300px]">
+                  <LineChart data={chartData} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" />
-                    <YAxis domain={[40, 200]} />
+                    <XAxis dataKey="date" tick={{ fontSize: 11 }} />
+                    <YAxis domain={[40, 200]} tick={{ fontSize: 11 }} />
                     <Tooltip />
-                    <Legend />
+                    <Legend wrapperStyle={{ fontSize: '12px' }} />
                     <Line type="monotone" dataKey="systolic" stroke="#ef4444" name="Systolic" strokeWidth={2} />
                     <Line type="monotone" dataKey="diastolic" stroke="#3b82f6" name="Diastolic" strokeWidth={2} />
                   </LineChart>
                 </ResponsiveContainer>
               ) : (
-                <div className="text-center py-12 text-gray-400">
+                <div className="text-center py-12 text-gray-400 text-sm">
                   No data available yet. Start logging your blood pressure!
                 </div>
               )}
@@ -218,17 +218,17 @@ export function HistoryAnalytics({ profile }: HistoryAnalyticsProps) {
 
           {chartData.some(d => d.pulse > 0) && (
             <Card>
-              <CardHeader>
-                <CardTitle>Pulse Rate Trends</CardTitle>
+              <CardHeader className="p-4 sm:p-6">
+                <CardTitle className="text-base sm:text-lg">Pulse Rate Trends</CardTitle>
               </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={200}>
-                  <LineChart data={chartData.filter(d => d.pulse > 0)}>
+              <CardContent className="p-2 sm:p-6 pt-0 sm:pt-0">
+                <ResponsiveContainer width="100%" height={180} className="sm:h-[200px]">
+                  <LineChart data={chartData.filter(d => d.pulse > 0)} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" />
-                    <YAxis domain={[40, 120]} />
+                    <XAxis dataKey="date" tick={{ fontSize: 11 }} />
+                    <YAxis domain={[40, 120]} tick={{ fontSize: 11 }} />
                     <Tooltip />
-                    <Legend />
+                    <Legend wrapperStyle={{ fontSize: '12px' }} />
                     <Line type="monotone" dataKey="pulse" stroke="#10b981" name="Pulse (bpm)" strokeWidth={2} />
                   </LineChart>
                 </ResponsiveContainer>
@@ -238,32 +238,32 @@ export function HistoryAnalytics({ profile }: HistoryAnalyticsProps) {
         </TabsContent>
 
         {/* Vitals History Tab */}
-        <TabsContent value="vitals">
+        <TabsContent value="vitals" className="mt-4">
           <Card>
-            <CardHeader>
-              <CardTitle>Blood Pressure History</CardTitle>
+            <CardHeader className="p-4 sm:p-6">
+              <CardTitle className="text-base sm:text-lg">Blood Pressure History</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0">
               {vitals.length > 0 ? (
                 <div className="space-y-2">
                   {vitals.map((vital) => {
                     const status = vital.systolic >= 140 || vital.diastolic >= 90 ? 'high' : 
                                  vital.systolic >= 130 || vital.diastolic >= 85 ? 'elevated' : 'normal';
                     return (
-                      <div key={vital.id} className="flex items-center gap-3 p-3 border rounded-lg">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2">
-                            <span className="text-lg">{vital.systolic}/{vital.diastolic} mmHg</span>
-                            <Badge variant={status === 'high' ? 'destructive' : status === 'elevated' ? 'secondary' : 'default'}>
+                      <div key={vital.id} className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 p-3 border rounded-lg">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-base sm:text-lg">{vital.systolic}/{vital.diastolic} mmHg</span>
+                            <Badge variant={status === 'high' ? 'destructive' : status === 'elevated' ? 'secondary' : 'default'} className="text-xs">
                               {status}
                             </Badge>
                           </div>
-                          <div className="text-sm text-gray-500">
+                          <div className="text-xs sm:text-sm text-gray-500 mt-1">
                             {new Date(vital.timestamp).toLocaleString()}
                             {vital.pulse && ` • Pulse: ${vital.pulse} bpm`}
                           </div>
                           {vital.notes && (
-                            <div className="text-sm text-gray-600 mt-1">{vital.notes}</div>
+                            <div className="text-xs sm:text-sm text-gray-600 mt-2 break-words">{vital.notes}</div>
                           )}
                         </div>
                       </div>
@@ -271,19 +271,19 @@ export function HistoryAnalytics({ profile }: HistoryAnalyticsProps) {
                   })}
                 </div>
               ) : (
-                <div className="text-center py-12 text-gray-400">No vitals recorded yet</div>
+                <div className="text-center py-12 text-gray-400 text-sm">No vitals recorded yet</div>
               )}
             </CardContent>
           </Card>
         </TabsContent>
 
         {/* Medications Tab */}
-        <TabsContent value="medications">
+        <TabsContent value="medications" className="mt-4">
           <Card>
-            <CardHeader>
-              <CardTitle>Medication Adherence Log</CardTitle>
+            <CardHeader className="p-4 sm:p-6">
+              <CardTitle className="text-base sm:text-lg">Medication Adherence Log</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0">
               {logs.length > 0 ? (
                 <div className="space-y-2">
                   {logs.map((log) => {
@@ -292,16 +292,16 @@ export function HistoryAnalytics({ profile }: HistoryAnalyticsProps) {
                     
                     return (
                       <div key={log.id} className="flex items-center gap-3 p-3 border rounded-lg">
-                        <div className={`w-3 h-3 rounded-full ${log.taken ? 'bg-green-500' : 'bg-gray-300'}`} />
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2">
-                            <span>{med.name}</span>
-                            <Badge variant="outline">{med.dosage}</Badge>
-                            <Badge variant={log.taken ? 'default' : 'secondary'}>
+                        <div className={`w-3 h-3 rounded-full shrink-0 ${log.taken ? 'bg-green-500' : 'bg-gray-300'}`} />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-xs sm:text-sm truncate">{med.name}</span>
+                            <Badge variant="outline" className="text-xs">{med.dosage}</Badge>
+                            <Badge variant={log.taken ? 'default' : 'secondary'} className="text-xs">
                               {log.taken ? 'Taken' : 'Missed'}
                             </Badge>
                           </div>
-                          <div className="text-sm text-gray-500">
+                          <div className="text-xs text-gray-500 mt-1">
                             {new Date(log.timestamp).toLocaleString()}
                           </div>
                         </div>
@@ -310,32 +310,32 @@ export function HistoryAnalytics({ profile }: HistoryAnalyticsProps) {
                   })}
                 </div>
               ) : (
-                <div className="text-center py-12 text-gray-400">No medication logs yet</div>
+                <div className="text-center py-12 text-gray-400 text-sm">No medication logs yet</div>
               )}
             </CardContent>
           </Card>
         </TabsContent>
 
         {/* Alerts Tab */}
-        <TabsContent value="alerts">
+        <TabsContent value="alerts" className="mt-4">
           <Card>
-            <CardHeader>
-              <CardTitle>Alerts History</CardTitle>
+            <CardHeader className="p-4 sm:p-6">
+              <CardTitle className="text-base sm:text-lg">Alerts History</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0">
               {alerts.length > 0 ? (
                 <div className="space-y-2">
                   {alerts.map((alert) => (
-                    <div key={alert.id} className={`p-4 rounded-lg border-2 ${
+                    <div key={alert.id} className={`p-3 sm:p-4 rounded-lg border-2 ${
                       alert.severity === 'critical' ? 'bg-red-50 border-red-200' : 'bg-orange-50 border-orange-200'
                     }`}>
-                      <div className="flex items-start gap-3">
-                        <AlertTriangle className={`w-5 h-5 mt-0.5 ${
+                      <div className="flex items-start gap-2 sm:gap-3">
+                        <AlertTriangle className={`w-5 h-5 mt-0.5 shrink-0 ${
                           alert.severity === 'critical' ? 'text-red-600' : 'text-orange-600'
                         }`} />
-                        <div className="flex-1">
-                          <div className="font-medium">{alert.message}</div>
-                          <div className="text-sm text-gray-600 mt-1">
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium text-sm break-words">{alert.message}</div>
+                          <div className="text-xs sm:text-sm text-gray-600 mt-1">
                             {new Date(alert.timestamp).toLocaleString()}
                           </div>
                         </div>
@@ -344,7 +344,7 @@ export function HistoryAnalytics({ profile }: HistoryAnalyticsProps) {
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-12 text-gray-400">No alerts recorded</div>
+                <div className="text-center py-12 text-gray-400 text-sm">No alerts recorded</div>
               )}
             </CardContent>
           </Card>

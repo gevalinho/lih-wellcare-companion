@@ -99,18 +99,18 @@ export function SignupPage({ onSignupSuccess, onNavigateToLogin }: SignupPagePro
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-green-50 p-4">
       <Card className="w-full max-w-2xl shadow-lg">
-        <CardHeader className="text-center space-y-2">
+        <CardHeader className="text-center space-y-2 p-4 sm:p-6">
           <div className="flex justify-center mb-2">
-            <div className="bg-blue-100 p-3 rounded-full">
-              <Heart className="w-8 h-8 text-blue-600" />
+            <div className="bg-blue-100 p-2 sm:p-3 rounded-full">
+              <Heart className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600" />
             </div>
           </div>
-          <CardTitle className="text-2xl">Create Your WellCare Account</CardTitle>
-          <CardDescription>
+          <CardTitle className="text-xl sm:text-2xl">Create Your WellCare Account</CardTitle>
+          <CardDescription className="text-sm">
             {step === 1 ? 'Step 1: Basic Information' : 'Step 2: Profile Details'}
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0">
           <form onSubmit={step === 1 ? (e) => { e.preventDefault(); handleNext(); } : handleSignup}>
             {step === 1 && (
               <div className="space-y-4">
@@ -124,7 +124,7 @@ export function SignupPage({ onSignupSuccess, onNavigateToLogin }: SignupPagePro
                       value={formData.name}
                       onChange={(e) => handleInputChange('name', e.target.value)}
                       required
-                      className="pl-10"
+                      className="pl-10 h-11 sm:h-10"
                     />
                   </div>
                 </div>
@@ -140,77 +140,79 @@ export function SignupPage({ onSignupSuccess, onNavigateToLogin }: SignupPagePro
                       value={formData.email}
                       onChange={(e) => handleInputChange('email', e.target.value)}
                       required
-                      className="pl-10"
+                      className="pl-10 h-11 sm:h-10"
                     />
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="password">Password *</Label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                    <Input
-                      id="password"
-                      type="password"
-                      placeholder="••••••••"
-                      value={formData.password}
-                      onChange={(e) => handleInputChange('password', e.target.value)}
-                      required
-                      className="pl-10"
-                    />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="password">Password *</Label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <Input
+                        id="password"
+                        type="password"
+                        placeholder="••••••••"
+                        value={formData.password}
+                        onChange={(e) => handleInputChange('password', e.target.value)}
+                        required
+                        className="pl-10 h-11 sm:h-10"
+                      />
+                    </div>
                   </div>
-                </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="confirmPassword">Confirm Password *</Label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                    <Input
-                      id="confirmPassword"
-                      type="password"
-                      placeholder="••••••••"
-                      value={formData.confirmPassword}
-                      onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
-                      required
-                      className="pl-10"
-                    />
+                  <div className="space-y-2">
+                    <Label htmlFor="confirmPassword">Confirm Password *</Label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <Input
+                        id="confirmPassword"
+                        type="password"
+                        placeholder="••••••••"
+                        value={formData.confirmPassword}
+                        onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
+                        required
+                        className="pl-10 h-11 sm:h-10"
+                      />
+                    </div>
                   </div>
                 </div>
 
                 <div className="space-y-2">
                   <Label>I am a *</Label>
                   <RadioGroup value={formData.role} onValueChange={(value) => handleInputChange('role', value)}>
-                    <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                    <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
                       <RadioGroupItem value="patient" id="patient" />
                       <Label htmlFor="patient" className="flex-1 cursor-pointer">
                         <div>
-                          <div>Patient</div>
-                          <div className="text-sm text-gray-500">Track my own health data</div>
+                          <div className="text-sm sm:text-base">Patient</div>
+                          <div className="text-xs sm:text-sm text-gray-500">Track my own health data</div>
                         </div>
                       </Label>
                     </div>
-                    <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                    <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
                       <RadioGroupItem value="caregiver" id="caregiver" />
                       <Label htmlFor="caregiver" className="flex-1 cursor-pointer">
                         <div>
-                          <div>Caregiver</div>
-                          <div className="text-sm text-gray-500">Help care for a patient</div>
+                          <div className="text-sm sm:text-base">Caregiver</div>
+                          <div className="text-xs sm:text-sm text-gray-500">Help care for a patient</div>
                         </div>
                       </Label>
                     </div>
-                    <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
+                    <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
                       <RadioGroupItem value="doctor" id="doctor" />
                       <Label htmlFor="doctor" className="flex-1 cursor-pointer">
                         <div>
-                          <div>Doctor / Healthcare Provider</div>
-                          <div className="text-sm text-gray-500">Monitor patient health records</div>
+                          <div className="text-sm sm:text-base">Doctor / Healthcare Provider</div>
+                          <div className="text-xs sm:text-sm text-gray-500">Monitor patient health records</div>
                         </div>
                       </Label>
                     </div>
                   </RadioGroup>
                 </div>
 
-                <Button type="submit" className="w-full">
+                <Button type="submit" className="w-full h-11 sm:h-10">
                   Next
                 </Button>
               </div>
@@ -220,7 +222,7 @@ export function SignupPage({ onSignupSuccess, onNavigateToLogin }: SignupPagePro
               <div className="space-y-4">
                 {formData.role === 'patient' && (
                   <>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="age">Age</Label>
                         <Input
@@ -229,6 +231,7 @@ export function SignupPage({ onSignupSuccess, onNavigateToLogin }: SignupPagePro
                           placeholder="35"
                           value={formData.age}
                           onChange={(e) => handleInputChange('age', e.target.value)}
+                          className="h-11 sm:h-10"
                         />
                       </div>
                       <div className="space-y-2">
@@ -237,7 +240,7 @@ export function SignupPage({ onSignupSuccess, onNavigateToLogin }: SignupPagePro
                           id="sex"
                           value={formData.sex}
                           onChange={(e) => handleInputChange('sex', e.target.value)}
-                          className="w-full h-10 px-3 rounded-md border border-gray-300 bg-white"
+                          className="w-full h-11 sm:h-10 px-3 rounded-md border border-gray-300 bg-white text-sm sm:text-base"
                         >
                           <option value="">Select</option>
                           <option value="male">Male</option>
@@ -255,6 +258,7 @@ export function SignupPage({ onSignupSuccess, onNavigateToLogin }: SignupPagePro
                         value={formData.conditions}
                         onChange={(e) => handleInputChange('conditions', e.target.value)}
                         rows={3}
+                        className="resize-none"
                       />
                     </div>
 
@@ -265,6 +269,7 @@ export function SignupPage({ onSignupSuccess, onNavigateToLogin }: SignupPagePro
                         placeholder="Jane Doe"
                         value={formData.emergencyContact}
                         onChange={(e) => handleInputChange('emergencyContact', e.target.value)}
+                        className="h-11 sm:h-10"
                       />
                     </div>
 
@@ -278,7 +283,7 @@ export function SignupPage({ onSignupSuccess, onNavigateToLogin }: SignupPagePro
                           placeholder="+1 (555) 123-4567"
                           value={formData.emergencyPhone}
                           onChange={(e) => handleInputChange('emergencyPhone', e.target.value)}
-                          className="pl-10"
+                          className="pl-10 h-11 sm:h-10"
                         />
                       </div>
                     </div>
@@ -294,9 +299,10 @@ export function SignupPage({ onSignupSuccess, onNavigateToLogin }: SignupPagePro
                         placeholder="e.g., Spouse, Child, Friend"
                         value={formData.relationship}
                         onChange={(e) => handleInputChange('relationship', e.target.value)}
+                        className="h-11 sm:h-10"
                       />
                     </div>
-                    <div className="p-4 bg-blue-50 rounded-lg text-sm">
+                    <div className="p-3 sm:p-4 bg-blue-50 rounded-lg text-xs sm:text-sm">
                       <p>After registration, patients can grant you access to their health data by entering your email address.</p>
                     </div>
                   </div>
@@ -311,19 +317,20 @@ export function SignupPage({ onSignupSuccess, onNavigateToLogin }: SignupPagePro
                         placeholder="e.g., Cardiology, General Practice"
                         value={formData.specialization}
                         onChange={(e) => handleInputChange('specialization', e.target.value)}
+                        className="h-11 sm:h-10"
                       />
                     </div>
-                    <div className="p-4 bg-blue-50 rounded-lg text-sm">
+                    <div className="p-3 sm:p-4 bg-blue-50 rounded-lg text-xs sm:text-sm">
                       <p>After registration, patients can grant you access to their health data by entering your email address.</p>
                     </div>
                   </div>
                 )}
 
-                <div className="flex gap-3">
-                  <Button type="button" variant="outline" onClick={() => setStep(1)} className="flex-1">
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <Button type="button" variant="outline" onClick={() => setStep(1)} className="flex-1 h-11 sm:h-10">
                     Back
                   </Button>
-                  <Button type="submit" disabled={loading} className="flex-1">
+                  <Button type="submit" disabled={loading} className="flex-1 h-11 sm:h-10">
                     {loading ? 'Creating Account...' : 'Create Account'}
                   </Button>
                 </div>
@@ -336,7 +343,7 @@ export function SignupPage({ onSignupSuccess, onNavigateToLogin }: SignupPagePro
                 <button
                   type="button"
                   onClick={onNavigateToLogin}
-                  className="text-blue-600 hover:underline"
+                  className="text-blue-600 hover:underline font-medium"
                 >
                   Sign in
                 </button>

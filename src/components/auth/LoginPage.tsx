@@ -36,21 +36,21 @@ export function LoginPage({ onLoginSuccess, onNavigateToSignup }: LoginPageProps
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-green-50 p-4">
       <Card className="w-full max-w-md shadow-lg">
-        <CardHeader className="text-center space-y-2">
+        <CardHeader className="text-center space-y-2 p-4 sm:p-6">
           <div className="flex justify-center mb-2">
-            <div className="bg-blue-100 p-3 rounded-full">
-              <Heart className="w-8 h-8 text-blue-600" />
+            <div className="bg-blue-100 p-2 sm:p-3 rounded-full">
+              <Heart className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600" />
             </div>
           </div>
-          <CardTitle className="text-2xl">Welcome to WellCare Companion</CardTitle>
-          <CardDescription>
+          <CardTitle className="text-xl sm:text-2xl">Welcome to WellCare Companion</CardTitle>
+          <CardDescription className="text-sm">
             Sign in to manage your health journey
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0">
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email" className="text-sm sm:text-base">Email</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <Input
@@ -60,13 +60,13 @@ export function LoginPage({ onLoginSuccess, onNavigateToSignup }: LoginPageProps
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="pl-10"
+                  className="pl-10 h-11 sm:h-10"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password" className="text-sm sm:text-base">Password</Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <Input
@@ -76,12 +76,12 @@ export function LoginPage({ onLoginSuccess, onNavigateToSignup }: LoginPageProps
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="pl-10"
+                  className="pl-10 h-11 sm:h-10"
                 />
               </div>
             </div>
 
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button type="submit" className="w-full h-11 sm:h-10" disabled={loading}>
               {loading ? 'Signing in...' : 'Sign In'}
             </Button>
 
@@ -91,7 +91,7 @@ export function LoginPage({ onLoginSuccess, onNavigateToSignup }: LoginPageProps
                 <button
                   type="button"
                   onClick={onNavigateToSignup}
-                  className="text-blue-600 hover:underline"
+                  className="text-blue-600 hover:underline font-medium"
                 >
                   Sign up
                 </button>

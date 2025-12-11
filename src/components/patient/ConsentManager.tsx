@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Badge } from '../ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '../ui/dialog';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 import { consentAPI } from '../../utils/api';
 import { Users, Plus, Trash2, Shield, UserCheck } from 'lucide-react';
@@ -138,6 +138,9 @@ export function ConsentManager({ profile }: ConsentManagerProps) {
                 <DialogHeader>
                   <DialogTitle>Grant Access to Your Health Data</DialogTitle>
                 </DialogHeader>
+                <DialogDescription>
+                  Grant access to your caregiver or doctor so they can help monitor your health
+                </DialogDescription>
                 <form onSubmit={handleGrantAccess} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="granteeEmail">Email Address *</Label>

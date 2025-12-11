@@ -59,28 +59,28 @@ export function PatientHome({ profile, onNavigate }: PatientHomeProps) {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Welcome Section */}
       <div>
-        <h1 className="text-3xl mb-2">Welcome back, {profile.name}</h1>
-        <p className="text-gray-600">Here's your health summary for today</p>
+        <h1 className="text-2xl sm:text-3xl mb-2">Welcome back, {profile.name}</h1>
+        <p className="text-sm sm:text-base text-gray-600">Here's your health summary for today</p>
       </div>
 
       {/* Alerts Section */}
       {alerts.length > 0 && (
         <Card className="border-orange-200 bg-orange-50">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-orange-900">
-              <AlertTriangle className="w-5 h-5" />
+          <CardHeader className="p-4 sm:p-6">
+            <CardTitle className="flex items-center gap-2 text-orange-900 text-base sm:text-lg">
+              <AlertTriangle className="w-5 h-5 shrink-0" />
               Active Alerts ({alerts.length})
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-2">
+          <CardContent className="space-y-2 p-4 sm:p-6 pt-0 sm:pt-0">
             {alerts.slice(0, 3).map((alert) => (
               <div key={alert.id} className="flex items-start gap-3 p-3 bg-white rounded-lg">
-                <AlertTriangle className={`w-5 h-5 mt-0.5 ${alert.severity === 'critical' ? 'text-red-600' : 'text-orange-600'}`} />
-                <div className="flex-1">
-                  <div className="text-sm">{alert.message}</div>
+                <AlertTriangle className={`w-5 h-5 mt-0.5 shrink-0 ${alert.severity === 'critical' ? 'text-red-600' : 'text-orange-600'}`} />
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm break-words">{alert.message}</div>
                   <div className="text-xs text-gray-500 mt-1">{formatDate(alert.timestamp)}</div>
                 </div>
               </div>
@@ -95,82 +95,83 @@ export function PatientHome({ profile, onNavigate }: PatientHomeProps) {
       )}
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
         {/* Latest BP Reading */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <Heart className="w-5 h-5 text-red-500" />
-              Latest Blood Pressure
+        <Card className="transition-shadow hover:shadow-md">
+          <CardHeader className="pb-3 p-4 sm:p-6 sm:pb-3">
+            <CardTitle className="text-sm sm:text-base flex items-center gap-2">
+              <Heart className="w-4 h-4 sm:w-5 sm:h-5 text-red-500 shrink-0" />
+              <span className="truncate">Latest Blood Pressure</span>
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0">
             {latestVital ? (
               <div className="space-y-2">
-                <div className="text-3xl">
+                <div className="text-2xl sm:text-3xl">
                   {latestVital.systolic}/{latestVital.diastolic}
-                  <span className="text-base text-gray-500 ml-2">mmHg</span>
+                  <span className="text-sm sm:text-base text-gray-500 ml-2">mmHg</span>
                 </div>
                 {latestVital.pulse && (
-                  <div className="text-sm text-gray-600">
-                    <Activity className="w-4 h-4 inline mr-1" />
+                  <div className="text-xs sm:text-sm text-gray-600">
+                    <Activity className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1" />
                     Pulse: {latestVital.pulse} bpm
                   </div>
                 )}
-                <div className="text-xs text-gray-500">{formatDate(latestVital.timestamp)}</div>
+                <div className="text-xs text-gray-500 truncate">{formatDate(latestVital.timestamp)}</div>
                 <Badge 
                   variant={getBPStatus(latestVital.systolic, latestVital.diastolic).color === 'green' ? 'default' : 'destructive'}
+                  className="text-xs"
                 >
                   {getBPStatus(latestVital.systolic, latestVital.diastolic).status}
                 </Badge>
               </div>
             ) : (
-              <div className="text-gray-400 py-4">No readings yet</div>
+              <div className="text-gray-400 py-4 text-sm">No readings yet</div>
             )}
           </CardContent>
         </Card>
 
         {/* Active Medications */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <Pill className="w-5 h-5 text-blue-500" />
-              Active Medications
+        <Card className="transition-shadow hover:shadow-md">
+          <CardHeader className="pb-3 p-4 sm:p-6 sm:pb-3">
+            <CardTitle className="text-sm sm:text-base flex items-center gap-2">
+              <Pill className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 shrink-0" />
+              <span className="truncate">Active Medications</span>
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0">
             <div className="space-y-2">
-              <div className="text-3xl">{medications.filter(m => m.active).length}</div>
+              <div className="text-2xl sm:text-3xl">{medications.filter(m => m.active).length}</div>
               {medications.filter(m => m.active).slice(0, 2).map((med) => (
-                <div key={med.id} className="text-sm">
-                  <div>{med.name}</div>
-                  <div className="text-xs text-gray-500">{med.dosage}</div>
+                <div key={med.id} className="text-xs sm:text-sm">
+                  <div className="truncate">{med.name}</div>
+                  <div className="text-xs text-gray-500 truncate">{med.dosage}</div>
                 </div>
               ))}
               {medications.length === 0 && (
-                <div className="text-gray-400 py-4">No medications added</div>
+                <div className="text-gray-400 py-4 text-sm">No medications added</div>
               )}
             </div>
           </CardContent>
         </Card>
 
         {/* Quick Actions */}
-        <Card className="bg-gradient-to-br from-blue-50 to-green-50">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">Quick Actions</CardTitle>
+        <Card className="bg-gradient-to-br from-blue-50 to-green-50 transition-shadow hover:shadow-md sm:col-span-2 lg:col-span-1">
+          <CardHeader className="pb-3 p-4 sm:p-6 sm:pb-3">
+            <CardTitle className="text-sm sm:text-base">Quick Actions</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-2">
-            <Button onClick={() => onNavigate('vitals')} className="w-full" size="sm">
-              <Activity className="w-4 h-4 mr-2" />
-              Log BP Reading
+          <CardContent className="space-y-2 p-4 sm:p-6 pt-0 sm:pt-0">
+            <Button onClick={() => onNavigate('vitals')} className="w-full h-auto py-2.5 sm:py-2" size="sm">
+              <Activity className="w-4 h-4 mr-2 shrink-0" />
+              <span className="text-sm">Log BP Reading</span>
             </Button>
-            <Button onClick={() => onNavigate('medications')} variant="outline" className="w-full" size="sm">
-              <Pill className="w-4 h-4 mr-2" />
-              Log Medication
+            <Button onClick={() => onNavigate('medications')} variant="outline" className="w-full h-auto py-2.5 sm:py-2" size="sm">
+              <Pill className="w-4 h-4 mr-2 shrink-0" />
+              <span className="text-sm">Log Medication</span>
             </Button>
-            <Button onClick={() => onNavigate('history')} variant="outline" className="w-full" size="sm">
-              <TrendingUp className="w-4 h-4 mr-2" />
-              View History
+            <Button onClick={() => onNavigate('history')} variant="outline" className="w-full h-auto py-2.5 sm:py-2" size="sm">
+              <TrendingUp className="w-4 h-4 mr-2 shrink-0" />
+              <span className="text-sm">View History</span>
             </Button>
           </CardContent>
         </Card>
@@ -178,28 +179,28 @@ export function PatientHome({ profile, onNavigate }: PatientHomeProps) {
 
       {/* Recent Activity */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Calendar className="w-5 h-5" />
+        <CardHeader className="p-4 sm:p-6">
+          <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+            <Calendar className="w-5 h-5 shrink-0" />
             Recent Activity
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0">
           {loading ? (
-            <div className="text-center py-8 text-gray-400">Loading...</div>
+            <div className="text-center py-8 text-gray-400 text-sm">Loading...</div>
           ) : (
             <div className="space-y-3">
               {latestVital && (
                 <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                  <Heart className="w-5 h-5 text-red-500" />
-                  <div className="flex-1">
-                    <div className="text-sm">Blood pressure recorded: {latestVital.systolic}/{latestVital.diastolic} mmHg</div>
-                    <div className="text-xs text-gray-500">{formatDate(latestVital.timestamp)}</div>
+                  <Heart className="w-5 h-5 text-red-500 shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm break-words">Blood pressure recorded: {latestVital.systolic}/{latestVital.diastolic} mmHg</div>
+                    <div className="text-xs text-gray-500 truncate">{formatDate(latestVital.timestamp)}</div>
                   </div>
                 </div>
               )}
               {!latestVital && medications.length === 0 && (
-                <div className="text-center py-8 text-gray-400">
+                <div className="text-center py-8 text-gray-400 text-sm">
                   No activity yet. Start by logging your first blood pressure reading!
                 </div>
               )}
