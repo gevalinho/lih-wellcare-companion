@@ -126,7 +126,7 @@ export const medicationsAPI = {
     const query = patientId ? `?patientId=${patientId}` : '';
     return apiRequest(`/medications/logs${query}`);
   },
-};
+}; 
 
 // Consent API
 export const consentAPI = {
@@ -171,5 +171,54 @@ export const alertsAPI = {
 export const notificationsAPI = {
   getList: async () => {
     return apiRequest('/notifications');
+  },
+};
+
+// AI Chat API
+export const aiChatAPI = {
+  sendMessage: async (message: string, sessionId?: string, symptoms?: string[], vitalsContext?: any) => {
+    return apiRequest('/ai/chat', {
+      method: 'POST',
+      body: JSON.stringify({ message, sessionId, symptoms, vitalsContext }),
+    });
+  },
+
+  getHistory: async (sessionId?: string) => {
+    const query = sessionId ? `?sessionId=${sessionId}` : '';
+    return apiRequest(`/ai/chat/history${query}`);
+  },
+
+  checkSymptoms: async (symptoms: string[], duration?: string, severity?: number) => {
+    return apiRequest('/ai/symptom-check', {
+      method: 'POST',
+      body: JSON.stringify({ symptoms, duration, severity }),
+    });
+  },
+};
+
+// Health Check Session API
+export const healthCheckAPI = {
+  startSession: async () => {
+    return apiRequest('/health-check/session', {
+      method: 'POST',
+    });
+  },
+
+  analyzeFace: async (imageData: string, sessionId?: string) => {
+    return apiRequest('/health-check/analyze-face', {
+      method: 'POST',
+      body: JSON.stringify({ imageData, sessionId }),
+    });
+  },
+
+  completeSession: async (sessionId: string) => {
+    return apiRequest('/health-check/session/complete', {
+      method: 'POST',
+      body: JSON.stringify({ sessionId }),
+    });
+  },
+
+  getHistory: async () => {
+    return apiRequest('/health-check/history');
   },
 };
