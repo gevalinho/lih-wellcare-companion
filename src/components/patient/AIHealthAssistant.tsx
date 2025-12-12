@@ -235,6 +235,122 @@ export function AIHealthAssistant({ profile }: AIHealthAssistantProps) {
     setSymptoms((prev) => prev.filter((s) => s !== symptom));
   };
 
+  const estimateDurationDays = (value: string) => {
+    if (!value) return 0;
+    const match = value.toLowerCase().match(/(\d+)\s*(hour|hr|day|week|month)/);
+    if (!match) return 0;
+    const amount = Number(match[1]);
+    const unit = match[2];
+    if (unit.startsWith('hour')) return amount / 24;
+    if (unit.startsWith('day')) return amount;
+    if (unit.startsWith('week')) return amount * 7;
+    if (unit.startsWith('month')) return amount * 30;
+    return 0;
+  };
+
+  const symptomKnowledgeBase = [
+    {
+      keywords: ['weakness', 'fatigue', 'tired'],
+      conditions: ['Anemia', 'Chronic fatigue', 'Dehydration', 'Infection'],
+      recommendations: [
+        'Stay hydrated and get adequate rest',
+        'Monitor temperature and note any accompanying symptoms',
+        'If weakness worsens suddenly, seek urgent care',
+      ],
+    },
+    {
+      keywords: ['headache', 'migraine'],
+      conditions: ['Migraine', 'Tension headache', 'High blood pressure'],
+      recommendations: [
+        'Reduce screen time and stay hydrated',
+        'Monitor blood pressure if you have a history of hypertension',
+        'Seek urgent care if headache is sudden and severe',
+      ],
+    },
+    {
+      keywords: ['fever', 'temperature'],
+      conditions: ['Viral infection', 'Bacterial infection'],
+      recommendations: [
+        'Stay hydrated and rest',
+        'Monitor temperature every 4-6 hours',
+        'Seek medical attention if fever exceeds 103°F / 39.4°C',
+      ],
+    },
+    {
+      keywords: ['chest pain', 'shortness of breath'],
+      conditions: ['Cardiac issue', 'Anxiety', 'Respiratory infection'],
+      recommendations: [
+        'If chest pain is crushing or radiates to arm/jaw, call emergency services immediately',
+        'Practice slow breathing to reduce anxiety-related discomfort',
+        'Consult your doctor soon for further evaluation',
+      ],
+    },
+    {
+      keywords: ['cough'],
+      conditions: ['Upper respiratory infection', 'Allergies', 'Asthma flare'],
+      recommendations: [
+        'Stay hydrated and consider using a humidifier',
+        'Note if cough is dry or productive and report to your provider',
+        'Seek urgent care for difficulty breathing or blood in mucus',
+      ],
+    },
+    {
+      keywords: ['dizziness', 'lightheaded'],
+      conditions: ['Low blood pressure', 'Dehydration', 'Inner ear imbalance'],
+      recommendations: [
+        'Sit or lie down until the feeling passes',
+        'Avoid sudden posture changes and stay hydrated',
+        'See your provider if dizziness persists or you faint',
+      ],
+    },
+  ];
+
+  const buildSymptomFallback = () => {
+    const durationDays = estimateDurationDays(duration);
+    const severityLabel = severity >= 8 ? 'severe' : severity >= 5 ? 'moderate' : 'mild';
+    const urgency =
+      severity >= 8 || durationDays >= 7
+        ? 'high'
+        : severity >= 5 || durationDays >= 3
+        ? 'medium'
+        : 'low';
+
+    const possibleConditions = new Set<string>();
+    const recommendations = new Set<string>();
+
+    symptoms.forEach((symptom) => {
+      const entry = symptomKnowledgeBase.find((item) =>
+        item.keywords.some((keyword) => symptom.toLowerCase().includes(keyword)),
+      );
+      if (entry) {
+        entry.conditions.forEach((condition) => possibleConditions.add(condition));
+        entry.recommendations.forEach((rec) => recommendations.add(rec));
+      }
+    });
+
+    if (possibleConditions.size === 0) {
+      possibleConditions.add('Viral infection');
+      possibleConditions.add('Stress-related symptoms');
+    }
+    if (recommendations.size === 0) {
+      recommendations.add('Monitor symptoms and rest');
+      recommendations.add('Stay hydrated and follow a light diet');
+    }
+
+    if (severity >= 8 || symptoms.some((symptom) => /chest pain|shortness of breath/.test(symptom.toLowerCase()))) {
+      recommendations.add('Seek immediate medical attention if symptoms worsen or include chest pain.');
+    }
+
+    return {
+      severity: severityLabel,
+      urgency,
+      possibleConditions: Array.from(possibleConditions),
+      recommendations: Array.from(recommendations),
+      disclaimer:
+        'This guidance is informational only. Severe or persistent symptoms require evaluation by a healthcare professional.',
+    };
+  };
+
   const analyzeSymptoms = async () => {
     if (symptoms.length === 0) return;
 
@@ -244,7 +360,8 @@ export function AIHealthAssistant({ profile }: AIHealthAssistantProps) {
       setSymptomAnalysis(response.analysis);
     } catch (error: any) {
       console.error('Symptom analysis error:', error);
-      toast.error(error?.message || 'Failed to analyze symptoms');
+      toast.warning('Symptom analysis service is being set up. Showing best-effort guidance.');
+      setSymptomAnalysis(buildSymptomFallback());
     } finally {
       setSymptomLoading(false);
     }

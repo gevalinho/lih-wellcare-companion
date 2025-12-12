@@ -58,6 +58,80 @@ const getOpenAIKey = () => {
   return apiKey;
 };
 
+// Smart fallback responder for AI chat when OpenAI isn't available
+const getSmartFallbackResponse = (message: string, healthContext: any) => {
+  const lowerMessage = message.toLowerCase();
+
+  if (lowerMessage.includes('blood pressure') || lowerMessage.includes('bp')) {
+    if (healthContext.latestBP) {
+      const { systolic, diastolic } = healthContext.latestBP;
+      const status =
+        systolic >= 140 || diastolic >= 90
+          ? 'elevated'
+          : systolic >= 130 || diastolic >= 85
+          ? 'slightly elevated'
+          : 'within normal range';
+      return `Your most recent blood pressure reading was ${systolic}/${diastolic} mmHg, which is ${status}. Normal blood pressure is typically around 120/80 mmHg. ${
+        systolic >= 140 || diastolic >= 90
+          ? 'I recommend consulting your healthcare provider about this elevated reading.'
+          : 'Continue monitoring your blood pressure regularly.'
+      } Always follow your doctor's advice regarding your blood pressure management.`;
+    }
+
+    if (lowerMessage.includes('normal') || lowerMessage.includes('should') || lowerMessage.includes('healthy')) {
+      return "Normal blood pressure is typically around 120/80 mmHg. Here's what the ranges mean:\n\n• Normal: Less than 120/80 mmHg\n• Elevated: 120-129/80 mmHg\n• High (Stage 1): 130-139/80-89 mmHg\n• High (Stage 2): 140+/90+ mmHg\n\nAlways consult your healthcare provider for personalized guidance based on your health history.";
+    }
+
+    if (
+      lowerMessage.includes('lower') ||
+      lowerMessage.includes('reduce') ||
+      lowerMessage.includes('improve') ||
+      lowerMessage.includes('decrease')
+    ) {
+      return 'Here are evidence-based ways to help lower blood pressure:\n\n1. **Diet**: Reduce sodium intake (aim for less than 2,300mg/day), eat more fruits, vegetables, and whole grains\n2. **Exercise**: Aim for 30 minutes of moderate activity most days\n3. **Weight**: Maintain a healthy weight\n4. **Alcohol**: Limit alcohol consumption\n5. **Stress**: Practice relaxation techniques like deep breathing or meditation\n6. **Sleep**: Get 7-9 hours of quality sleep\n7. **Medications**: Take prescribed medications as directed\n\nAlways consult your healthcare provider before making significant lifestyle changes.';
+    }
+  }
+
+  if (lowerMessage.includes('medication') || lowerMessage.includes('medicine') || lowerMessage.includes('pill') || lowerMessage.includes('drug')) {
+    if (healthContext.medications && healthContext.medications.length > 0) {
+      const medList = healthContext.medications.map((m: any) => `${m.name} (${m.dosage})`).join(', ');
+
+      if (lowerMessage.includes('when') || lowerMessage.includes('time') || lowerMessage.includes('take')) {
+        return `You're currently taking: ${medList}.\n\nMedication timing is very important and specific to each medication and individual. Please follow your doctor's or pharmacist's instructions exactly. If you're unsure about when to take any of your medications, contact your healthcare provider or pharmacist for clarification.`;
+      }
+
+      return `You're currently taking ${healthContext.medications.length} medication(s): ${medList}.\n\nIt's important to take all medications exactly as prescribed. If you have questions about your medications, their side effects, or interactions, please consult your healthcare provider or pharmacist.`;
+    }
+    return "I don't see any medications logged in your profile. If you're taking medications, you can add them in the Medications section. Always take medications exactly as prescribed by your healthcare provider.";
+  }
+
+  if (lowerMessage.includes('heart') && (lowerMessage.includes('health') || lowerMessage.includes('habit') || lowerMessage.includes('healthy'))) {
+    return 'Great question! Here are key habits for heart health:\n\n1. **Regular Exercise**: 150 minutes of moderate activity per week\n2. **Healthy Diet**: Lots of fruits, vegetables, whole grains, lean proteins\n3. **Monitor Blood Pressure**: Check regularly and keep it under control\n4. **Manage Stress**: Practice relaxation techniques\n5. **Don\'t Smoke**: Avoid tobacco products\n6. **Limit Alcohol**: Moderate consumption if at all\n7. **Maintain Healthy Weight**: Work with your doctor on a healthy weight range\n8. **Regular Check-ups**: See your healthcare provider regularly\n\nThese habits, combined with any prescribed medications, can significantly improve heart health.';
+  }
+
+  if (lowerMessage.includes('stress') || lowerMessage.includes('anxiety') || lowerMessage.includes('relax')) {
+    return 'Stress management is important for overall health, especially blood pressure. Here are some techniques:\n\n1. **Deep Breathing**: Practice slow, deep breaths for 5-10 minutes\n2. **Meditation**: Even 5 minutes daily can help\n3. **Physical Activity**: Exercise is a great stress reliever\n4. **Sleep**: Prioritize 7-9 hours of quality sleep\n5. **Social Connections**: Stay connected with friends and family\n6. **Hobbies**: Engage in activities you enjoy\n7. **Limit Caffeine**: Reduce if it makes you anxious\n\nIf stress feels overwhelming, please talk to your healthcare provider about additional support options.';
+  }
+
+  if (lowerMessage.includes('exercise') || lowerMessage.includes('activity') || lowerMessage.includes('workout')) {
+    return 'Regular physical activity is excellent for your health! Here are recommendations:\n\n**For Most Adults:**\n• 150 minutes of moderate-intensity aerobic activity per week (like brisk walking)\n• Or 75 minutes of vigorous activity per week\n• Spread throughout the week\n• Include muscle-strengthening activities 2+ days per week\n\n**Good Options:**\n• Walking\n• Swimming\n• Cycling\n• Gardening\n• Dancing\n\n**Important**: Before starting a new exercise program, especially if you have health conditions, consult your healthcare provider to ensure it\'s safe and appropriate for you.';
+  }
+
+  if (lowerMessage.includes('diet') || lowerMessage.includes('food') || lowerMessage.includes('eat') || lowerMessage.includes('nutrition')) {
+    return 'A heart-healthy diet can significantly impact your overall health:\n\n**Eat More:**\n• Fruits and vegetables (aim for 5+ servings daily)\n• Whole grains (brown rice, whole wheat, oats)\n• Lean proteins (fish, poultry, beans, nuts)\n• Low-fat dairy\n• Foods rich in potassium and magnesium\n\n**Eat Less:**\n• Sodium (aim for less than 2,300mg/day)\n• Saturated and trans fats\n• Added sugars\n• Processed foods\n\n**Consider the DASH Diet**: Designed specifically for blood pressure management. Ask your healthcare provider or a registered dietitian for personalized nutrition advice.';
+  }
+
+  if (lowerMessage.includes('chest pain') || lowerMessage.includes('dizzy') || lowerMessage.includes('emergency')) {
+    return '⚠️ **IMPORTANT**: If you\'re experiencing chest pain, severe dizziness, difficulty breathing, or other serious symptoms, please:\n\n1. **Call 911 immediately** or go to the nearest emergency room\n2. **Do not wait** to see if symptoms improve\n3. **Do not drive yourself** if possible\n\nThis AI assistant is NOT a substitute for emergency medical care. When in doubt, seek immediate medical attention.';
+  }
+
+  if (lowerMessage.includes('hello') || lowerMessage.includes('hi ') || lowerMessage.includes('hey')) {
+    return `Hello${healthContext.userName ? ' ' + healthContext.userName : ''}! 👋 I'm here to help answer your health questions. I can provide information about:\n\n• Blood pressure and vital signs\n• Medications\n• Heart-healthy lifestyle habits\n• Exercise and nutrition\n• Stress management\n\nWhat would you like to know?`;
+  }
+
+  return "I'm here to help with your health questions! I can provide information about:\n\n• Understanding your blood pressure readings\n• Healthy lifestyle habits\n• Medication information\n• Heart health tips\n• Exercise and nutrition guidance\n\nWhat specific health topic would you like to learn about? Remember, I provide general information and you should always consult your healthcare provider for medical advice specific to your situation.";
+};
+
 // Health check endpoint
 app.get("/make-server-6e6f3496/health", (c) => {
   return c.json({ status: "ok" });
@@ -551,108 +625,135 @@ app.get("/make-server-6e6f3496/notifications", requireAuth, async (c) => {
 // ============================================
 
 // AI Chat endpoint
-app.post("/make-server-6e6f3496/ai/chat", requireAuth, async (c) => {
+const handleAIChat = async (c: any) => {
   try {
     const userId = c.get('userId');
     const body = await c.req.json();
-    const { message, sessionId } = body;
+    const { message, conversationHistory } = body;
 
     if (!message) {
       return c.json({ error: 'Message is required' }, 400);
     }
 
-    // Get user's health context
+    const profile = await kv.get(`user:${userId}`);
     const recentVitals = await kv.getByPrefix(`vital:${userId}:`);
     const medications = await kv.getByPrefix(`medication:${userId}:`);
-    const profile = await kv.get(`user:${userId}`) || {};
 
-    const sortedVitals = recentVitals.sort((a, b) => 
-      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-    ).slice(0, 5);
+    recentVitals.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    const latestVitals = recentVitals.slice(0, 5);
 
-    const healthContext = {
-      profile: {
-        age: profile.age || 'Not specified',
-        conditions: profile.conditions || [],
-      },
-      recentVitals: sortedVitals.map(v => ({
-        bp: `${v.systolic}/${v.diastolic}`,
-        pulse: v.pulse,
-        date: v.timestamp
-      })),
-      medications: medications.filter(m => m.active).map(m => ({
-        name: m.name,
-        dosage: m.dosage
-      }))
+    const healthContextObj = {
+      userName: profile?.name,
+      latestBP: latestVitals.length > 0 ? latestVitals[0] : null,
+      medications: medications.filter((m: any) => m.active),
     };
 
-    // Call OpenAI API
-    const aiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${getOpenAIKey()}`
-      },
-      body: JSON.stringify({
-        model: "gpt-4o",
-        max_tokens: 1000,
-        temperature: 0.7,
-        messages: [
-          {
-            role: "system",
-            content: `You are a helpful health assistant providing general health information. Always remind users to consult healthcare professionals for medical advice.
+    let aiMessage = '';
+    let usedFallback = false;
 
-User's health context:
-- Age: ${healthContext.profile.age}
-- Existing conditions: ${healthContext.profile.conditions.join(', ') || 'None'}
-- Recent BP readings: ${healthContext.recentVitals.map(v => v.bp).join(', ') || 'None'}
-- Current medications: ${healthContext.medications.map(m => m.name).join(', ') || 'None'}
+    try {
+      const systemPromptParts = [
+        'You are a helpful AI health assistant for WellCare Companion.',
+        `The user's name is ${profile?.name || 'the patient'}.`,
+      ];
 
-Guidelines:
-- Never diagnose conditions
-- Provide educational information only
-- Encourage medical consultation for concerns
-- Be empathetic and supportive`
-          },
-          {
-            role: "user",
-            content: message
+      if (latestVitals.length > 0) {
+        const latest = latestVitals[0];
+        let vitals = `Their most recent blood pressure reading was ${latest.systolic}/${latest.diastolic} mmHg`;
+        if (latest.pulse) {
+          vitals += ` with a pulse of ${latest.pulse} bpm`;
+        }
+        vitals += '.';
+        systemPromptParts.push(vitals);
+      }
+
+      const activeMeds = medications.filter((m: any) => m.active);
+      if (activeMeds.length > 0) {
+        systemPromptParts.push(
+          `They are currently taking ${activeMeds.length} medication(s): ${activeMeds
+            .map((m: any) => `${m.name} (${m.dosage})`)
+            .join(', ')}.`,
+        );
+      }
+
+      systemPromptParts.push(
+        'Provide helpful, accurate health information. Always remind users to consult healthcare professionals for medical advice. Be empathetic and supportive. Keep responses concise and easy to understand.',
+      );
+
+      const messages = [{ role: 'system', content: systemPromptParts.join(' ') }];
+
+      if (conversationHistory && Array.isArray(conversationHistory)) {
+        conversationHistory.slice(-10).forEach((msg: any) => {
+          if (msg.role && msg.content) {
+            messages.push({ role: msg.role, content: msg.content });
           }
-        ]
-      })
-    });
+        });
+      }
 
-    const aiData = await aiResponse.json();
-    
-    if (aiData.error) {
-      throw new Error(aiData.error.message || 'OpenAI API error');
+      messages.push({ role: 'user', content: message });
+
+      const openaiApiKey = getOpenAIKey();
+
+      const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${openaiApiKey}`,
+        },
+        body: JSON.stringify({
+          model: 'gpt-3.5-turbo',
+          messages,
+          temperature: 0.7,
+          max_tokens: 500,
+        }),
+      });
+
+      if (!openaiResponse.ok) {
+        const errorData = await openaiResponse.json().catch(() => ({}));
+        if (openaiResponse.status === 429) {
+          throw new Error('Rate limit exceeded');
+        }
+        if (openaiResponse.status === 401) {
+          throw new Error('Invalid API key');
+        }
+        throw new Error(errorData.error?.message || 'OpenAI error');
+      }
+
+      const openaiData = await openaiResponse.json();
+      aiMessage = openaiData.choices?.[0]?.message?.content || '';
+
+      if (!aiMessage) {
+        throw new Error('Empty response from OpenAI');
+      }
+    } catch (openaiError) {
+      console.log('AI chat falling back:', openaiError.message);
+      usedFallback = true;
+      aiMessage = getSmartFallbackResponse(message, healthContextObj);
     }
-    
-    const aiMessage = aiData.choices?.[0]?.message?.content || "I'm having trouble processing that. Please try again.";
 
-    // Save chat history
-    const chatId = sessionId || `chat:${userId}:${Date.now()}`;
-    const chatEntry = {
-      id: `${chatId}:${Date.now()}`,
-      sessionId: chatId,
+    const chatId = `chat:${userId}:${Date.now()}`;
+    await kv.set(chatId, {
+      id: chatId,
       userId,
       userMessage: message,
       aiResponse: aiMessage,
-      timestamp: new Date().toISOString()
-    };
+      usedFallback,
+      timestamp: new Date().toISOString(),
+    });
 
-    await kv.set(chatEntry.id, chatEntry);
-
-    return c.json({ 
-      success: true, 
-      response: aiMessage,
-      sessionId: chatId
+    return c.json({
+      success: true,
+      message: aiMessage,
+      usedFallback,
     });
   } catch (error) {
     console.log('AI chat error:', error);
     return c.json({ error: `Failed to process chat: ${error.message}` }, 500);
   }
-});
+};
+
+app.post("/make-server-6e6f3496/ai/chat", requireAuth, handleAIChat);
+app.post("/make-server-6e6f3496/chat", requireAuth, handleAIChat);
 
 // Get chat history
 app.get("/make-server-6e6f3496/ai/chat/history", requireAuth, async (c) => {
