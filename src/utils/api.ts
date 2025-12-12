@@ -226,3 +226,18 @@ export const healthCheckAPI = {
     return apiRequest('/health-check/history');
   },
 };
+
+
+// Chat API
+export const chatAPI = {
+  sendMessage: async (data: { message: string; conversationHistory?: any[] }) => {
+    return apiRequest('/chat', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  getHistory: async () => {
+    return apiRequest('/chat/history');
+  },
+};

@@ -8,9 +8,10 @@ import { ConsentManager } from './ConsentManager';
 import { HealthTips } from './HealthTips';
 import { MobileNav } from '../shared/MobileNav';
 import { ResponsiveNav } from '../shared/ResponsiveNav';
-import { Heart, Activity, Pill, TrendingUp, Users, BookOpen, Settings, LogOut } from 'lucide-react';
+import { Heart, Activity, Pill, TrendingUp, Users, BookOpen, Settings, LogOut, Sparkles } from 'lucide-react';
 import { authAPI } from '../../utils/api';
 import { toast } from 'sonner@2.0.3';
+import { AIHealthAssistant } from './AIHealthAssistant';
 
 interface PatientDashboardProps {
   profile: any;
@@ -37,6 +38,7 @@ export function PatientDashboard({ profile, onLogout }: PatientDashboardProps) {
     { id: 'medications', label: 'Medications', icon: Pill },
     { id: 'history', label: 'History', icon: TrendingUp },
     { id: 'consent', label: 'Data Sharing', icon: Users },
+    { id: 'ai-assistant', label: 'AI Assistant', icon: Sparkles },
     { id: 'health-tips', label: 'Health Tips', icon: BookOpen },
   ];
 
@@ -104,6 +106,9 @@ export function PatientDashboard({ profile, onLogout }: PatientDashboardProps) {
             )}
             {activeView === 'consent' && (
               <ConsentManager profile={profile} />
+            )}
+            {activeView === 'ai-assistant' && (
+              <AIHealthAssistant profile={profile} />
             )}
             {activeView === 'health-tips' && (
               <HealthTips />
