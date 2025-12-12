@@ -28,14 +28,27 @@ export const getAuthHeaders = async () => {
   };
 };
 
+type RequestOptions = RequestInit & { skipAuth?: boolean };
+
 // API request helper
-const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
-  const headers = await getAuthHeaders();
+const apiRequest = async (endpoint: string, options: RequestOptions = {}) => {
+  const { skipAuth, ...rest } = options;
+  let headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+
+  if (!skipAuth) {
+    const authHeaders = await getAuthHeaders();
+    headers = { ...headers, ...authHeaders };
+  } else {
+    headers.Authorization = `Bearer ${publicAnonKey}`;
+  }
+
   const response = await fetch(`${API_BASE}${endpoint}`, {
-    ...options,
+    ...rest,
     headers: {
       ...headers,
-      ...options.headers,
+      ...(rest.headers || {}),
     },
   });
 
@@ -53,6 +66,7 @@ export const authAPI = {
     return apiRequest('/auth/signup', {
       method: 'POST',
       body: JSON.stringify(data),
+      skipAuth: true,
     });
   },
 
